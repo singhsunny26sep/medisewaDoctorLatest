@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "297189863529",
+    "project_id": "smartmediseva",
+    "storage_bucket": "smartmediseva.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:297189863529:android:88b50971b1e75e7366b2f8",
+        "android_client_info": {
+          "package_name": "com.thesmartmediseva"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBDjcN-PT5q9HQV2U0T5vOVHqMFwWdoibs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
