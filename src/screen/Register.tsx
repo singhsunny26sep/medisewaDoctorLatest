@@ -7,6 +7,7 @@ import axios from 'axios';
 import { apiCall } from '../const/api';
 import { NavigationString } from '../const/NavigationString';
 import { colors } from '../const/Colors';
+import { getFcmToken } from '../utils/FcmTokenUtils';
 
 let regex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
 
@@ -67,14 +68,29 @@ const Register = ({ navigation, route }: any): React.JSX.Element => {
             return
         }
         setIsLoading(true)
-        return await axios.post(`${apiCall.mainUrl}/users/register`, { name: name, email: email, password: password, mobile: mobile, address: address, role: "patient" }).then((response: any) => {
+        
+        // Get FCM token
+        const fcmToken = await getFcmToken();
+        console.log('📱 FCM Token for Register:', fcmToken);
+        
+        return await axios.post(`${apiCall.mainUrl}/users/register`, { 
+            name: name, 
+            email: email, 
+            password: password, 
+            mobile: mobile, 
+            address: address, 
+            role: "patient",
+            fcmToken: fcmToken 
+        }).then((response: any) => {
             // console.log("response: ", response?.data);
+            console.log('✅ Register successful');
+            console.log('📱 FCM Token sent in register request:', fcmToken);
             setIsLoading(false)
             navigation.navigate(NavigationString.Login)
             showToast(response?.data?.msg || "Register Successfull")
         }).catch((error: any) => {
             setIsLoading(false)
-            console.log("Error: ", error)
+            console.log("❌ Error: ", error)
             showToast(error?.response?.data?.msg || "Error registering. Please try again later.")
         })
     }

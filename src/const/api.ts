@@ -1,5 +1,5 @@
 export const apiCall = {
-    mainUrl: "https://medisawabackend.onrender.com/api/v1",
+    mainUrl: "https://9febf08a2a40.ngrok-free.app/api/v1",
     // mainUrlLocal: "http://10.157.156.164:5600/api/v1",
 }   
 

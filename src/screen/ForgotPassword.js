@@ -15,6 +15,7 @@ import {Fonts} from '../../../Constants/Fonts';
 import OtpInput from '../components/otpInput/OtpInput';
 import { apiCall } from '../const/api';
 import showToast from '../utils/ShowToast';
+import {getFcmToken} from '../utils/FcmTokenUtils';
 
 export default function ForgotPassword({navigation}) {
   const [mobile, setMobile] = useState('');
@@ -63,20 +64,25 @@ export default function ForgotPassword({navigation}) {
     try {
       const otpString = Array.isArray(otp) ? otp.join('') : otp;
       
+      // Get FCM token
+      const fcmToken = await getFcmToken();
+      console.log('📱 FCM Token for ForgotPassword:', fcmToken);
+      
       const requestData = {
         sessionId: sessionId,
         otp: otpString,
         mobile: mobile,
-        fcmToken: "",
+        fcmToken: fcmToken,
         password: newPassword,
       };
       
-      console.log('Reset Password Request Data:', requestData);
+      console.log('📱 Reset Password Request Data:', requestData);
+      console.log('📱 FCM Token sent in forgot password request:', fcmToken);
       
       const response = await axios.post(`${apiCall.mainUrl}/users/forgot/password`, requestData);
 
       const data = response.data;
-      console.log('Reset Password Response:', data);
+      console.log('✅ Reset Password Response:', data);
       
       if (data.success) {
         showToast('Password updated successfully!');
@@ -85,9 +91,9 @@ export default function ForgotPassword({navigation}) {
         Alert.alert('Error', data.message || 'Failed to update password. Please check your OTP and try again.');
       }
     } catch (error) {
-      console.error('Error resetting password:', error);
-      console.error('Error response:', error.response?.data);
-      console.error('Error status:', error.response?.status);
+      console.error('❌ Error resetting password:', error);
+      console.error('❌ Error response:', error.response?.data);
+      console.error('❌ Error status:', error.response?.status);
       
       if (error.response?.status === 500) {
         Alert.alert('Server Error', 'There was a server error. Please try again later or contact support.');

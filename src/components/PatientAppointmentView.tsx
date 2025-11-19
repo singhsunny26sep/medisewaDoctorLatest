@@ -180,12 +180,12 @@ const PatientAppointmentView = ({ item }: PatientAppointmentViewProps): React.JS
                                         }
 
                                         const doctor = patientData || item?.userId || item
-                                        console.log('🚀 AudioCall: Navigating to VideoCallScreen with params:', {
+                                        console.log('AudioCall: Navigating to AudioCallScreen with params:', {
                                             doctor: doctor,
                                             callData: callData,
                                             callType: 'audio'
                                         })
-                                        navigation.navigate(NavigationString.VideoCallScreen, {
+                                        navigation.navigate(NavigationString.AudioCallScreen, {
                                             doctor,
                                             callData,
                                             callType: 'audio'

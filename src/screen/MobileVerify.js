@@ -18,6 +18,7 @@ import showToast from '../utils/ShowToast';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useLogin} from '../context/LoginProvider';
+import {getFcmToken} from '../utils/FcmTokenUtils';
 
 export default function MobileVerify({route, navigation}) {
   const mobile = route?.params?.mobile || '';
@@ -37,16 +38,20 @@ export default function MobileVerify({route, navigation}) {
     setError('');
     setLoading(true);
     try {
+      const fcmToken = await getFcmToken();
+      console.log('📱 FCM Token for MobileVerify:', fcmToken);
+      
       const response = await axios.post(`${apiCall.mainUrl}/users/verify/otp`, {
         sessionId: details,
         otp: otpString,
         mobile: mobile,
-        fcmToken: '',
+        fcmToken: fcmToken,
       });
       setLoading(false);
 
       if (response.data.success && response.data.token) {
-        console.log('Received token:', response.data.token);
+        console.log('✅ Received token:', response.data.token);
+        console.log('📱 FCM Token sent in verify OTP request:', fcmToken);
         await AsyncStorage.setItem('token', response.data.token);
         setIsLoggedIn(true);
         showToast('OTP Verified!');
@@ -57,6 +62,7 @@ export default function MobileVerify({route, navigation}) {
       }
     } catch (err) {
       setLoading(false);
+      console.log('❌ Error verifying OTP:', err);
       setError('Failed to verify OTP. Please try again.');
     }
   };

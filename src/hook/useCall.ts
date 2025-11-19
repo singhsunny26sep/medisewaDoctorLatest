@@ -28,18 +28,18 @@ const useCall = () => {
             console.log('📊 Status:', response.status)
             console.log('📦 Full Response:', JSON.stringify(response?.data, null, 2))
             
-            const callData = response?.data?.data || response?.data
-            console.log('🎯 Extracted Call Data:', JSON.stringify(callData, null, 2))
+            const callDataRaw = response?.data?.data ?? response?.data ?? response
+            console.log('🎯 Extracted Call Data:', JSON.stringify(callDataRaw, null, 2))
             
             // Fire RTM invite for incoming popup on receiver side
-            if (callData?.callId) {
+            if (callDataRaw?.callId) {
                 console.log('📡 Sending RTM message to receiver:', receiverId)
                 
                 try {
                     // Try RTM first
                     await RtmService.sendPeerMessage(receiverId, {
                         type: 'call_invite',
-                        callId: callData.callId,
+                        callId: callDataRaw.callId,
                         callType,
                         // Use current user's name as caller for popup
                         callerName: user?.name || 'Unknown'
@@ -50,7 +50,7 @@ const useCall = () => {
                     
                     // Fallback to notification service
                     await NotificationService.sendCallNotification(receiverId, {
-                        callId: callData.callId,
+                        callId: callDataRaw.callId,
                         // Use current user's name as caller for popup
                         callerName: user?.name || 'Unknown',
                         callType,
@@ -63,7 +63,7 @@ const useCall = () => {
                 try {
                     console.log('🧪 Simulating incoming invite locally to ensure popup appears')
                     RtmService.simulateIncomingInvite({
-                        callId: callData.callId,
+                        callId: callDataRaw.callId,
                         callerId: String(user?.id || user?._id || receiverId),
                         callerName: user?.name || 'Unknown',
                         callType,
@@ -76,7 +76,7 @@ const useCall = () => {
                 console.log('⚠️ No callId found in response, skipping RTM message')
             }
             
-            return callData
+            return callDataRaw ? { ...callDataRaw, callType } : callDataRaw
         } catch (error: any) {
             console.log('❌ VideoCall API Error:')
             console.log('Status:', error?.response?.status)

@@ -16,7 +16,7 @@ const Stack = createStackNavigator();
 
 const UnAuth = (): React.JSX.Element => {
     return (
-        <Stack.Navigator initialRouteName={NavigationString.Login}>
+        <Stack.Navigator initialRouteName={NavigationString.MobileLogin}>
             {/* <Stack.Screen name={NavigationString.ChooseRole} component={ChooseRole} options={{ title: 'Choose Role', headerShown: false, headerStyle: { backgroundColor: colors.greenCustom, }, headerTintColor: colors.white, }} /> */}
             {/* <Stack.Screen name={NavigationString.Dashboard} component={Dashboard} options={{ title: 'Dashboard', headerStyle: { backgroundColor: colors.greenCustom, }, headerTintColor: colors.white, }} /> */}
             <Stack.Screen name={NavigationString.Login} component={Login} options={{ title: 'Login', headerShown: false }} />

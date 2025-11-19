@@ -9,6 +9,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage'
 import { apiCall } from '../const/api'
 import { colors } from '../const/Colors'
 import { NavigationString } from '../const/NavigationString'
+import { getFcmToken } from '../utils/FcmTokenUtils'
 
 const Login = ({ navigation, route }: any): React.JSX.Element => {
     const { setIsLoggedIn } = useLogin()
@@ -32,27 +33,33 @@ const Login = ({ navigation, route }: any): React.JSX.Element => {
             return
         }
         setIsLoading(true)
-        return await axios.post(`${apiCall.mainUrl}/users/login`, { email: username, password: password }).then(async (response) => {
-            // console.log("response: ", response?.data);
-            console.log('Login Token:', response.data.token);
+        
+        const fcmToken = await getFcmToken();
+        console.log('📱 FCM Token for Login:', fcmToken);
+        
+        return await axios.post(`${apiCall.mainUrl}/users/login`, { 
+            email: username, 
+            password: password,
+            fcmToken: fcmToken 
+        }).then(async (response) => {
+            console.log('✅ Login Token:', response.data.token);
+            console.log('FCM Token sent in login request:', fcmToken);
 
             setIsLoggedIn(true)
             await AsyncStorage.setItem('token', response.data.token);
             showToast(response?.data?.msg || "Login Successfully")
-            // Keep loading briefly and navigate to Profile screen inside Drawer
             setTimeout(() => {
                 try {
                     navigation.navigate(NavigationString.Drawer, { screen: NavigationString.Profile })
                 } catch (e) {
-                    // fallback: try direct navigation to Profile
                     navigation.navigate(NavigationString.Profile)
                 } finally {
                     setIsLoading(false)
                 }
             }, 600)
         }).catch((error: any) => {
-            console.log("error on handleSubmit: ", error);
-            console.log("error: ", error?.response);
+            console.log("Error on handleSubmit: ", error);
+            console.log("Error response: ", error?.response);
             setIsLoading(false)
             showToast(error?.response?.data?.msg || "Error login. Please try again later.")
         })

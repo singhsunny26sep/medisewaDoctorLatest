@@ -1,19 +1,39 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native'
 import Ionicons from 'react-native-vector-icons/Ionicons'
 import { colors } from '../const/Colors'
 import useCall from '../hook/useCall'
 
 const VideoCallScreen = ({ route, navigation }: any) => {
-    const { doctor, callData, callType = 'video' } = route?.params || {}
+    const { doctor, callData, onCallEnd } = route?.params || {}
     const { endCall: endCallApi } = useCall()
 
     const [isMuted, setIsMuted] = useState(false)
-    const [isCameraOn, setIsCameraOn] = useState(callType === 'video')
-    const [isSpeakerOn, setIsSpeakerOn] = useState(true)
+    const [isCameraOn, setIsCameraOn] = useState(true) 
     const [seconds, setSeconds] = useState(0)
-    const [callStatus, setCallStatus] = useState('connecting')
+    const [callStatus, setCallStatus] = useState<'connecting' | 'live'>('connecting')
+    useEffect(() => {
+        const statusTimer = setTimeout(() => {
+            setCallStatus('live')
+        }, 2000)
+        return () => clearTimeout(statusTimer)
+    }, [])
+
     const intervalRef = useRef<any>(null)
+    const hasEndedServerRef = useRef(false)
+    const hasNotifiedEndRef = useRef(false)
+
+    const notifyCallEnded = useCallback(() => {
+        if (hasNotifiedEndRef.current) return
+        hasNotifiedEndRef.current = true
+        if (typeof onCallEnd === 'function') {
+            try {
+                onCallEnd()
+            } catch (error) {
+                console.log('Error executing onCallEnd callback:', error)
+            }
+        }
+    }, [onCallEnd])
 
     useEffect(() => {
         intervalRef.current = setInterval(() => {
@@ -26,12 +46,17 @@ const VideoCallScreen = ({ route, navigation }: any) => {
 
     useEffect(() => {
         if (callData?.callId) {
-            console.log('🎯 Call screen loaded with callId:', callData.callId)
-            console.log('📞 Call type:', callType)
-            console.log('👤 Doctor info:', doctor)
+            console.log('Video call screen loaded with callId:', callData.callId)
+            console.log(' Opponent info:', doctor)
             setCallStatus('connecting')
         }
-    }, [callData, callType, doctor])
+    }, [callData, doctor])
+
+    useEffect(() => {
+        navigation.setOptions({
+            title: 'Video Call',
+        })
+    }, [navigation])
 
     const timerLabel = useMemo(() => {
         const mm = String(Math.floor(seconds / 60)).padStart(2, '0')
@@ -46,13 +71,28 @@ const VideoCallScreen = ({ route, navigation }: any) => {
                 console.log('Ending call with callId:', callId)
                 const res = await endCallApi(callId)
                 console.log('Call end API response →', res)
+                hasEndedServerRef.current = true
             }
         } catch (error) {
             console.log('Error ending call:', error)
         } finally {
+            notifyCallEnded()
             navigation.goBack()
         }
     }
+
+    useEffect(() => {
+        return () => {
+            if (callData?.callId && !hasEndedServerRef.current) {
+                console.log('Video call screen unmounted without explicit end, attempting cleanup for callId:', callData.callId)
+                endCallApi(callData.callId)
+                    .then((res) => console.log('Auto-ended video call on unmount →', res))
+                    .catch((error) => console.log('Error auto-ending video call on unmount:', error))
+                hasEndedServerRef.current = true
+            }
+            notifyCallEnded()
+        }
+    }, [callData?.callId, endCallApi, notifyCallEnded])
 
     return (
         <View style={styles.container}>
@@ -68,92 +108,42 @@ const VideoCallScreen = ({ route, navigation }: any) => {
             </View>
 
             <View style={styles.videoArea}>
-                {callType === 'video' ? (
-                    <>
-                        <View style={styles.remoteVideo}>
-                            <Text style={styles.videoLabel}>Connecting...</Text>
-                        </View>
-                        <View style={styles.localVideo}>
-                            <Text style={styles.videoLabelSmall}>You</Text>
-                        </View>
-                    </>
-                ) : (
-                    <View style={styles.audioCallArea}>
-                        <View style={styles.audioCallContent}>
-                            <Ionicons name="call" size={80} color={colors.greenCustom} />
-                            <Text style={styles.audioCallTitle}>
-                                {callData?.receiver?.name || doctor?.name || 'Doctor'}
-                            </Text>
-                            <Text style={styles.audioCallStatus}>
-                                {callStatus === 'connecting' ? 'Calling...' : callStatus}
-                            </Text>
-                        </View>
-                    </View>
-                )}
+                <View style={styles.remoteVideo}>
+                    <Text style={styles.videoLabel}>{callStatus === 'connecting' ? 'Connecting…' : 'Live'}</Text>
+                </View>
+                <View style={styles.localVideo}>
+                    <Text style={styles.videoLabelSmall}>You</Text>
+                </View>
             </View>
 
             <View style={styles.controls}>
-                {callType === 'video' ? (
-                    <>
-                        <TouchableOpacity
-                            style={[styles.controlButton, !isMuted ? styles.enabled : null]}
-                            onPress={() => {
-                                setIsMuted((v) => !v)
-                                console.log('Toggle mute:', !isMuted)
-                            }}
-                        >
-                            <Ionicons name={isMuted ? 'mic-off' : 'mic'} size={24} color={colors.white} />
-                        </TouchableOpacity>
+                <TouchableOpacity
+                    style={[styles.controlButton, !isMuted ? styles.enabled : null]}
+                    onPress={() => {
+                        setIsMuted((v) => !v)
+                        console.log('Toggle mute:', !isMuted)
+                    }}
+                >
+                    <Ionicons name={isMuted ? 'mic-off' : 'mic'} size={24} color={colors.white} />
+                </TouchableOpacity>
 
-                        <TouchableOpacity
-                            style={[styles.controlButton, isCameraOn ? styles.enabled : null]}
-                            onPress={() => {
-                                setIsCameraOn((v) => !v)
-                                console.log('Toggle camera:', !isCameraOn)
-                            }}
-                        >
-                            <Ionicons name={isCameraOn ? 'videocam' : 'videocam-off'} size={24} color={colors.white} />
-                        </TouchableOpacity>
+                <TouchableOpacity
+                    style={[styles.controlButton, isCameraOn ? styles.enabled : null]}
+                    onPress={() => {
+                        setIsCameraOn((v) => !v)
+                        console.log('Toggle camera:', !isCameraOn)
+                    }}
+                >
+                    <Ionicons name={isCameraOn ? 'videocam' : 'videocam-off'} size={24} color={colors.white} />
+                </TouchableOpacity>
 
-                        <TouchableOpacity style={styles.controlButton} onPress={() => console.log('Switch camera')}>
-                            <Ionicons name="camera-reverse" size={24} color={colors.white} />
-                        </TouchableOpacity>
+                <TouchableOpacity style={styles.controlButton} onPress={() => console.log('Switch camera')}>
+                    <Ionicons name="camera-reverse" size={24} color={colors.white} />
+                </TouchableOpacity>
 
-                        <TouchableOpacity style={[styles.controlButton, styles.hangup]} onPress={endCall}>
-                            <Ionicons name="call" size={24} color={colors.white} />
-                        </TouchableOpacity>
-                    </>
-                ) : (
-                    <>
-                        <TouchableOpacity
-                            style={[styles.controlButton, !isMuted ? styles.enabled : null]}
-                            onPress={() => {
-                                setIsMuted((v) => !v)
-                                console.log('Toggle mute:', !isMuted)
-                            }}
-                        >
-                            <Ionicons name={isMuted ? 'mic-off' : 'mic'} size={24} color={colors.white} />
-                        </TouchableOpacity>
-
-                        <TouchableOpacity
-                            style={[styles.controlButton, isSpeakerOn ? styles.enabled : null]}
-                            onPress={() => {
-                                setIsSpeakerOn((v) => !v)
-                                console.log('Toggle speaker:', !isSpeakerOn)
-                            }}
-                        >
-                            <Ionicons name={isSpeakerOn ? 'volume-high' : 'volume-mute'} size={24} color={colors.white} />
-                        </TouchableOpacity>
-
-                        <TouchableOpacity style={styles.controlButton} onPress={() => console.log('Show keypad')}>
-                            <Ionicons name="keypad" size={24} color={colors.white} />
-                        </TouchableOpacity>
-
-                        <TouchableOpacity style={[styles.controlButton, styles.hangup]} onPress={endCall}>
-                            <Ionicons name="call" size={24} color={colors.white} />
-                        </TouchableOpacity>
-                    </>
-                )}
+                <TouchableOpacity style={[styles.controlButton, styles.hangup]} onPress={endCall}>
+                    <Ionicons name="call" size={24} color={colors.white} />
+                </TouchableOpacity>
             </View>
         </View>
     )

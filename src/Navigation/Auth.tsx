@@ -13,6 +13,7 @@ import AllPatients from '../screen/AllPatients';
 import ForgotPassword from '../screen/ForgotPassword';
 import PdfViewerScreen from '../screen/PdfViewerScreen';
 import VideoCallScreen from '../screen/VideoCallScreen';
+import AudioCallScreen from '../screen/AudioCallScreen';
 import TimingSlot from '../screen/TimingSlot';
 
 const Stack = createStackNavigator();
@@ -33,7 +34,16 @@ const Auth = (): React.JSX.Element => {
             <Stack.Screen name={NavigationString.AllPatients} component={AllPatients} options={{ headerShown: true, title: "Patients", headerStyle: { backgroundColor: colors.greenCustom, }, headerTintColor: colors.white, headerTitleStyle: { color: colors.white } }} />
             <Stack.Screen name={NavigationString.ForgotPassword} component={ForgotPassword} options={{ headerShown: true, title: "Patients", headerStyle: { backgroundColor: colors.greenCustom, }, headerTintColor: colors.white, headerTitleStyle: { color: colors.white } }} />
             <Stack.Screen name={NavigationString.PdfViewerScreen} component={PdfViewerScreen as any} options={{ headerShown: false }} />
-            <Stack.Screen name={NavigationString.VideoCallScreen} component={VideoCallScreen} options={{ headerShown: true, title: "Video Call", headerStyle: { backgroundColor: colors.greenCustom, }, headerTintColor: colors.white, headerTitleStyle: { color: colors.white } }} />
+            <Stack.Screen
+                name={NavigationString.AudioCallScreen}
+                component={AudioCallScreen}
+                options={{ headerShown: false }}
+            />
+            <Stack.Screen
+                name={NavigationString.VideoCallScreen}
+                component={VideoCallScreen}
+                options={{ headerShown: false }}
+            />
             <Stack.Screen name={NavigationString.TimingSlot} component={TimingSlot} options={{ headerShown: true, title: "Timing Slot", headerStyle: { backgroundColor: colors.greenCustom, }, headerTintColor: colors.white, headerTitleStyle: { color: colors.white } }} />
 
         </Stack.Navigator>

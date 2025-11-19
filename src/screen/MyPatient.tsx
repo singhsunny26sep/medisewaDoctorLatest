@@ -20,7 +20,7 @@ const MyPatient = (): React.JSX.Element => {
             const res = await getAllPatients()
             
             if (Array.isArray(res) && res.length > 0) {
-                console.log("👥 Patient details:")
+                console.log("Patient details:")
                 res.forEach((patient, index) => {
                     console.log(`Patient ${index + 1}:`, {
                         id: patient._id || patient.id,
@@ -32,12 +32,12 @@ const MyPatient = (): React.JSX.Element => {
                     })
                 })
             } else {
-                console.log("⚠️ No patients found or invalid response format")
+                console.log("No patients found or invalid response format")
             }
             
             setPatients(Array.isArray(res) ? res : [])
         } catch (error) {
-            console.log("❌ Error fetching patients:", error)
+            console.log("Error fetching patients:", error)
         } finally {
             setLoading(false)
         }
@@ -68,7 +68,6 @@ const MyPatient = (): React.JSX.Element => {
         <View style={styles.container}>
             <StatusBar backgroundColor={colors.greenCustom} barStyle="light-content" />
             
-            {/* Beautiful Header Section */}
             <View style={styles.headerContainer}>
                 <View style={styles.headerContent}>
                     <View style={styles.headerLeft}>

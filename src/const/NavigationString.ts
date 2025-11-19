@@ -19,6 +19,7 @@ export const NavigationString = {
     PdfViewerScreen: "PdfViewerScreen",
     MobileLogin:"MobileLogin",
     MobileVerify:"MobileVerify",
+    AudioCallScreen: "AudioCallScreen",
     VideoCallScreen: "VideoCallScreen",
     TimingSlot: "TimingSlot",
 }
