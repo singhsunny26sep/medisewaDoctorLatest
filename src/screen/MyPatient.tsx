@@ -1,212 +1,513 @@
-import { FlatList, StatusBar, StyleSheet, View, Text, TouchableOpacity } from 'react-native'
-import React, { useCallback, useEffect, useState } from 'react'
-import { colors } from '../const/Colors'
-import AppointmentSkeletonLoader from '../common/AppointmentSkeletonLoader'
-import useUser from '../hook/useUser'
-import PatientAppointmentView from '../components/PatientAppointmentView'
-import Feather from 'react-native-vector-icons/Feather'
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  FlatList,
+  StatusBar,
+  StyleSheet,
+  View,
+  Text,
+  TouchableOpacity,
+  Platform,
+  RefreshControl,
+  TextInput,
+  Animated,
+  Dimensions,
+} from 'react-native';
+
+import LinearGradient from 'react-native-linear-gradient';
+
+import AppointmentSkeletonLoader from '../common/AppointmentSkeletonLoader';
+import useUser from '../hook/useUser';
+import PatientAppointmentView from '../components/PatientAppointmentView';
+
+import Feather from 'react-native-vector-icons/Feather';
+import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+
+const { width } = Dimensions.get('window');
+
+const COLORS = {
+  background: '#0F172A',
+  card: '#111827',
+  card2: '#1E293B',
+  white: '#FFFFFF',
+  text: '#F8FAFC',
+  subText: '#94A3B8',
+  primary: '#7C3AED',
+  secondary: '#A855F7',
+  cyan: '#06B6D4',
+  green: '#10B981',
+  orange: '#F59E0B',
+  pink: '#EC4899',
+  red: '#EF4444',
+  border: 'rgba(255,255,255,0.08)',
+};
 
 const MyPatient = (): React.JSX.Element => {
+  const { getAllPatients } = useUser();
 
-    const { getAllPatients } = useUser()
-    const [patients, setPatients] = useState<any>([])
-    const [loading, setLoading] = useState<boolean>(true)
-    const [refreshing, setRefreshing] = useState(false);
+  const [patients, setPatients] = useState<any>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
-    const skeletonArray = Array(4).fill(null);
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const translateAnim = useRef(new Animated.Value(40)).current;
 
-    const fetchPatients = async () => {
-        try {
-            const res = await getAllPatients()
-            
-            if (Array.isArray(res) && res.length > 0) {
-                console.log("Patient details:")
-                res.forEach((patient, index) => {
-                    console.log(`Patient ${index + 1}:`, {
-                        id: patient._id || patient.id,
-                        name: patient.name,
-                        email: patient.email,
-                        mobile: patient.mobile,
-                        address: patient.address,
-                        role: patient.role
-                    })
-                })
-            } else {
-                console.log("No patients found or invalid response format")
-            }
-            
-            setPatients(Array.isArray(res) ? res : [])
-        } catch (error) {
-            console.log("Error fetching patients:", error)
-        } finally {
-            setLoading(false)
-        }
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 700,
+        useNativeDriver: true,
+      }),
+
+      Animated.spring(translateAnim, {
+        toValue: 0,
+        friction: 7,
+        tension: 40,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, []);
+
+  const fetchPatients = async () => {
+    try {
+      const res = await getAllPatients();
+
+      setPatients(Array.isArray(res) ? res : []);
+    } catch (error) {
+      console.log('Error fetching patients:', error);
+    } finally {
+      setLoading(false);
     }
+  };
 
-    const onRefresh = useCallback(async () => {
-        console.log("🔄 Refreshing patients data...")
-        setRefreshing(true);
-        await fetchPatients();
-        setRefreshing(false);
-        console.log("✅ Refresh completed")
-    }, []);
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
 
-    useEffect(() => {
-        console.log("🚀 MyPatient component mounted, fetching patients...")
-        fetchPatients()
-    }, [])
+    await fetchPatients();
 
-    useEffect(() => {
-        console.log("📊 Patients state updated:", {
-            count: patients.length,
-            loading,
-            refreshing
-        })
-    }, [patients, loading, refreshing])
+    setRefreshing(false);
+  }, []);
 
-    return (
-        <View style={styles.container}>
-            <StatusBar backgroundColor={colors.greenCustom} barStyle="light-content" />
+  useEffect(() => {
+    fetchPatients();
+  }, []);
+
+  const filteredPatients = patients.filter(
+    (patient: any) =>
+      patient?.name
+        ?.toLowerCase()
+        .includes(searchQuery.toLowerCase()) ||
+      patient?.contactNumber?.includes(searchQuery) ||
+      patient?.email
+        ?.toLowerCase()
+        .includes(searchQuery.toLowerCase()),
+  );
+
+  const totalPatients = patients.length;
+
+  const activePatients = patients.filter(
+    (p: any) => p.status === 'active' || p.isActive,
+  ).length;
+
+  const HeaderComponent = () => (
+    <LinearGradient
+      colors={['#111827', '#0F172A', '#1E1B4B']}
+      style={styles.header}>
+      
+      <View style={styles.glow1} />
+      <View style={styles.glow2} />
+
+      <Animated.View
+        style={{
+          opacity: fadeAnim,
+          transform: [{ translateY: translateAnim }],
+        }}>
+        
+        {/* TOP */}
+        <View style={styles.headerTop}>
+          <View>
+            <Text style={styles.headerTitle}>My Patients</Text>
+
+            <Text style={styles.headerSubtitle}>
+              Manage your patient records
+            </Text>
+          </View>
+
+          <TouchableOpacity
+            style={styles.refreshBtn}
+            onPress={onRefresh}>
             
-            <View style={styles.headerContainer}>
-                <View style={styles.headerContent}>
-                    <View style={styles.headerLeft}>
-                        <View style={styles.iconContainer}>
-                            <Feather name="users" size={24} color={colors.white} />
-                        </View>
-                        <View style={styles.headerTextContainer}>
-                            <Text style={styles.headerTitle}>My Patients</Text>
-                            <Text style={styles.headerSubtitle}>
-                                {loading ? 'Loading...' : `${patients.length} ${patients.length === 1 ? 'Patient' : 'Patients'}`}
-                            </Text>
-                        </View>
-                    </View>
-                    <TouchableOpacity 
-                        style={styles.refreshButton}
-                        onPress={onRefresh}
-                        disabled={loading}
-                    >
-                        <Feather 
-                            name="refresh-cw" 
-                            size={20} 
-                            color={colors.greenCustom} 
-                        />
-                    </TouchableOpacity>
-                </View>
+            <Feather
+              name="refresh-cw"
+              size={20}
+              color={COLORS.white}
+            />
+          </TouchableOpacity>
+        </View>
+
+        {/* SEARCH */}
+        <View style={styles.searchContainer}>
+          <Feather
+            name="search"
+            size={18}
+            color={COLORS.subText}
+          />
+
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search patients..."
+            placeholderTextColor="#94A3B8"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
+
+          {searchQuery.length > 0 && (
+            <TouchableOpacity
+              onPress={() => setSearchQuery('')}>
+              
+              <Feather
+                name="x-circle"
+                size={18}
+                color={COLORS.subText}
+              />
+            </TouchableOpacity>
+          )}
+        </View>
+
+        {/* STATS */}
+        <View style={styles.statsRow}>
+          
+          {/* TOTAL */}
+          <LinearGradient
+            colors={['#7C3AED', '#A855F7']}
+            style={styles.statCard}>
+            
+            <View style={styles.statTop}>
+              <View style={styles.iconWrapper}>
+                <MaterialCommunityIcons
+                  name="account-group"
+                  size={22}
+                  color="#fff"
+                />
+              </View>
+
+              <Ionicons
+                name="arrow-forward"
+                size={18}
+                color="#fff"
+              />
             </View>
 
-            <FlatList
-                data={loading ? skeletonArray : patients}
-                keyExtractor={(item, index) => (item?._id || index).toString()}
-                renderItem={({ item }) => loading ? <AppointmentSkeletonLoader isLoading={loading} /> : <PatientAppointmentView item={item} />}
-                refreshing={refreshing}
-                onRefresh={onRefresh}
-                contentContainerStyle={styles.listContainer}
-                showsVerticalScrollIndicator={false}
-                ListEmptyComponent={
-                    !loading ? (
-                        <View style={styles.emptyContainer}>
-                            <Feather name="user-x" size={48} color={colors.lightGrey} />
-                            <Text style={styles.emptyTitle}>No Patients Found</Text>
-                            <Text style={styles.emptySubtitle}>Your patients will appear here</Text>
-                        </View>
-                    ) : null
-                }
-            />
-        </View>
-    )
-}
+            <Text style={styles.statValue}>
+              {totalPatients}
+            </Text>
 
-export default MyPatient
+            <Text style={styles.statLabel}>
+              Total Patients
+            </Text>
+          </LinearGradient>
+
+          {/* ACTIVE */}
+          <LinearGradient
+            colors={['#06B6D4', '#0891B2']}
+            style={styles.statCard}>
+            
+            <View style={styles.statTop}>
+              <View style={styles.iconWrapper}>
+                <MaterialCommunityIcons
+                  name="check-circle"
+                  size={22}
+                  color="#fff"
+                />
+              </View>
+
+              <Ionicons
+                name="pulse"
+                size={18}
+                color="#fff"
+              />
+            </View>
+
+            <Text style={styles.statValue}>
+              {activePatients}
+            </Text>
+
+            <Text style={styles.statLabel}>
+              Active Patients
+            </Text>
+          </LinearGradient>
+        </View>
+      </Animated.View>
+    </LinearGradient>
+  );
+
+  const EmptyState = () => (
+    <View style={styles.emptyState}>
+      <View style={styles.emptyIcon}>
+        <FontAwesome5
+          name="users"
+          size={34}
+          color={COLORS.primary}
+        />
+      </View>
+
+      <Text style={styles.emptyTitle}>
+        {searchQuery
+          ? 'No matching patients found'
+          : 'No patients yet'}
+      </Text>
+
+      <Text style={styles.emptyText}>
+        {searchQuery
+          ? 'Try searching with another keyword'
+          : 'Patients will appear here once they book appointments'}
+      </Text>
+
+      {!searchQuery && (
+        <TouchableOpacity
+          style={styles.emptyBtn}
+          onPress={onRefresh}>
+          
+          <LinearGradient
+            colors={['#7C3AED', '#A855F7']}
+            style={styles.emptyGradient}>
+            
+            <Text style={styles.emptyBtnText}>
+              Refresh
+            </Text>
+          </LinearGradient>
+        </TouchableOpacity>
+      )}
+    </View>
+  );
+
+  const skeletonArray = Array(3).fill(null);
+
+  return (
+    <View style={styles.container}>
+      <StatusBar
+        backgroundColor={COLORS.background}
+        barStyle="light-content"
+      />
+
+      <FlatList
+        data={loading ? skeletonArray : filteredPatients}
+        keyExtractor={(item, index) =>
+          String(item?._id || index)
+        }
+        renderItem={({ item }) =>
+          loading ? (
+            <AppointmentSkeletonLoader
+              isLoading={loading}
+            />
+          ) : (
+            <PatientAppointmentView item={item} />
+          )
+        }
+        ListHeaderComponent={<HeaderComponent />}
+        ListEmptyComponent={
+          !loading ? <EmptyState /> : null
+        }
+        contentContainerStyle={styles.listContent}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor="#fff"
+          />
+        }
+        showsVerticalScrollIndicator={false}
+      />
+    </View>
+  );
+};
+
+export default MyPatient;
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: colors.tertiary
-    },
-    headerContainer: {
-        backgroundColor: colors.greenCustom,
-        paddingTop: 20,
-        paddingBottom: 20,
-        paddingHorizontal: 20,
-        borderBottomLeftRadius: 24,
-        borderBottomRightRadius: 24,
-        shadowColor: colors.greenCustom,
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
-        shadowRadius: 8,
-        elevation: 8
-    },
-    headerContent: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between'
-    },
-    headerLeft: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        flex: 1
-    },
-    iconContainer: {
-        width: 50,
-        height: 50,
-        borderRadius: 25,
-        backgroundColor: 'rgba(255, 255, 255, 0.2)',
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginRight: 12
-    },
-    headerTextContainer: {
-        flex: 1
-    },
-    headerTitle: {
-        fontSize: 24,
-        fontWeight: '700',
-        color: colors.white,
-        marginBottom: 2
-    },
-    headerSubtitle: {
-        fontSize: 14,
-        color: 'rgba(255, 255, 255, 0.8)',
-        fontWeight: '500'
-    },
-    refreshButton: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-        backgroundColor: colors.white,
-        alignItems: 'center',
-        justifyContent: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-        elevation: 3
-    },
-    listContainer: {
-        paddingVertical: 16,
-        paddingHorizontal: 8
-    },
-    emptyContainer: {
-        flex: 1,
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingVertical: 60,
-        paddingHorizontal: 40
-    },
-    emptyTitle: {
-        fontSize: 20,
-        fontWeight: '600',
-        color: colors.dark,
-        marginTop: 16,
-        marginBottom: 8
-    },
-    emptySubtitle: {
-        fontSize: 14,
-        color: colors.gray,
-        textAlign: 'center',
-        lineHeight: 20
-    }
-})
+  container: {
+    flex: 1,
+    backgroundColor: COLORS.background,
+  },
 
+  header: {
+    paddingTop: Platform.OS === 'ios' ? 58 : 28,
+    paddingHorizontal: 20,
+    paddingBottom: 30,
+    borderBottomLeftRadius: 34,
+    borderBottomRightRadius: 34,
+    overflow: 'hidden',
+  },
 
+  glow1: {
+    position: 'absolute',
+    top: -50,
+    right: -30,
+    width: 220,
+    height: 220,
+    borderRadius: 120,
+    backgroundColor: 'rgba(124,58,237,0.25)',
+  },
+
+  glow2: {
+    position: 'absolute',
+    bottom: -60,
+    left: -30,
+    width: 180,
+    height: 180,
+    borderRadius: 100,
+    backgroundColor: 'rgba(6,182,212,0.15)',
+  },
+
+  headerTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 26,
+  },
+
+  headerTitle: {
+    fontSize: 30,
+    fontWeight: '800',
+    color: COLORS.white,
+    letterSpacing: 0.3,
+  },
+
+  headerSubtitle: {
+    color: '#B6C2D1',
+    fontSize: 14,
+    fontWeight: '500',
+    marginTop: 6,
+  },
+
+  refreshBtn: {
+    width: 50,
+    height: 50,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  searchContainer: {
+    backgroundColor: 'rgba(255,255,255,0.07)',
+    borderRadius: 22,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 18,
+    height: 58,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.05)',
+    marginBottom: 24,
+  },
+
+  searchInput: {
+    flex: 1,
+    marginLeft: 12,
+    color: COLORS.white,
+    fontSize: 14,
+    fontWeight: '500',
+  },
+
+  statsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+
+  statCard: {
+    width: (width - 52) / 2,
+    borderRadius: 26,
+    padding: 18,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
+  },
+
+  statTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 18,
+  },
+
+  iconWrapper: {
+    width: 54,
+    height: 54,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  statValue: {
+    fontSize: 34,
+    fontWeight: '800',
+    color: '#fff',
+    lineHeight: 42,
+  },
+
+  statLabel: {
+    color: 'rgba(255,255,255,0.85)',
+    marginTop: 6,
+    fontSize: 13,
+    fontWeight: '600',
+  },
+
+  listContent: {
+    paddingBottom: 30,
+  },
+
+  emptyState: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 30,
+    marginTop: 80,
+  },
+
+  emptyIcon: {
+    width: 90,
+    height: 90,
+    borderRadius: 30,
+    backgroundColor: COLORS.card,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 24,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+
+  emptyTitle: {
+    color: COLORS.white,
+    fontSize: 22,
+    fontWeight: '800',
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+
+  emptyText: {
+    color: COLORS.subText,
+    fontSize: 14,
+    textAlign: 'center',
+    lineHeight: 22,
+    marginBottom: 24,
+  },
+
+  emptyBtn: {
+    borderRadius: 20,
+    overflow: 'hidden',
+  },
+
+  emptyGradient: {
+    paddingHorizontal: 28,
+    paddingVertical: 14,
+    borderRadius: 20,
+  },
+
+  emptyBtnText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '700',
+  },
+});

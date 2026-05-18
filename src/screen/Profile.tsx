@@ -1,90 +1,112 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet, StatusBar } from 'react-native';
-import { colors } from '../const/Colors';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  ScrollView,
+  StyleSheet,
+  StatusBar,
+  Dimensions,
+  Animated,
+  ActivityIndicator,
+  Platform,
+} from 'react-native';
+
 import useUser from '../hook/useUser';
 import showToast from '../utils/ShowToast';
-import Loader from '../common/Loader';
-import CustomButton from '../utils/CustomButton';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useLogin } from '../context/LoginProvider';
 import ProfileImage from '../common/ProfileImage';
 import ImagePicker from 'react-native-image-crop-picker';
 import ActionSheet, { ActionSheetRef } from 'react-native-actions-sheet';
 import Feather from 'react-native-vector-icons/Feather';
+import FontAwesome5 from 'react-native-vector-icons/FontAwesome5';
 import EditProfileModel from '../utils/EditProfileModel';
 import TimeFormate from '../utils/TimeFormate';
 import { useNavigation } from '@react-navigation/native';
 import { NavigationString } from '../const/NavigationString';
 
+const { width } = Dimensions.get('window');
+
+const theme = {
+  primary: '#0F172A',
+  secondary: '#1E293B',
+  accent: '#3B82F6',
+  background: '#F8FAFC',
+  white: '#FFFFFF',
+  text: '#111827',
+  subText: '#64748B',
+  border: '#E2E8F0',
+  danger: '#EF4444',
+  card: '#FFFFFF',
+  softBlue: '#EFF6FF',
+};
+
 const Profile = () => {
-  const { setIsLoggedIn, setUser, user, role } = useLogin();
+  const { setIsLoggedIn, setUser } = useLogin();
+
   const navigation = useNavigation<any>();
-  const actionSheetRef: any = useRef<ActionSheetRef>(null);
-  const [refresh, setRefresh] = useState<boolean>(false);
+
+  const actionSheetRef = useRef<ActionSheetRef>(null);
+
   const { getUserProfile, profileImageUpdate } = useUser();
-  const [loading, setLoading] = useState<boolean>(true);
-  const [logOutLoading, setLogOutLoading] = useState<boolean>(false);
-  const [imgLoading, setImgLoading] = useState<boolean>(false);
+
+  const [refresh, setRefresh] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [logoutLoading, setLogoutLoading] = useState(false);
+  const [imgLoading, setImgLoading] = useState(false);
   const [userDetails, setUserDetails] = useState<any>();
-  const [visible, setVisible] = useState<boolean>(false);
+  const [visible, setVisible] = useState(false);
+
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(40)).current;
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 600,
+        useNativeDriver: true,
+      }),
+
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 500,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, []);
 
   const getUserDetails = async () => {
-    const user = await getUserProfile();
-    setUserDetails(user);
-  };
-
-  const logOut = async () => {
-    setLogOutLoading(true);
-    await AsyncStorage.removeItem('token');
-    await AsyncStorage.removeItem('studentId');
-    await AsyncStorage.removeItem('centerId');
-    await AsyncStorage.removeItem('role');
-    setUser('');
-    setLogOutLoading(false);
-    setIsLoggedIn(false);
-  };
-
-  const openCamera = async () => {
     try {
-      const image = await ImagePicker.openCamera({
-        mediaType: 'photo',
-        cropping: true,
-        compressImageQuality: 0.5,
-        width: 1000,
-        height: 1000,
-      });
-
-      setImgLoading(true);
-      await profileImageUpdate(image);
-      setImgLoading(false);
-      hideActionSheet();
-      setRefresh(!refresh);
-    } catch (error: any) {
-      showToast(`Error on image picking: ${error.message}`);
-      hideActionSheet();
-      setImgLoading(false);
+      const user = await getUserProfile();
+      setUserDetails(user);
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const openGallory = async () => {
-    try {
-      const image = await ImagePicker.openPicker({
-        mediaType: 'photo',
-        cropping: true,
-        compressImageQuality: 0.5,
-        width: 1000,
-        height: 1000,
-      });
+  useEffect(() => {
+    getUserDetails();
+  }, [refresh]);
 
-      setImgLoading(true);
-      await profileImageUpdate(image);
-      setImgLoading(false);
-      hideActionSheet();
-      setRefresh(!refresh);
-    } catch (error: any) {
-      showToast(`Error on image picking: ${error.message}`);
-      hideActionSheet();
-      setImgLoading(false);
+  const logout = async () => {
+    try {
+      setLogoutLoading(true);
+
+      await AsyncStorage.removeItem('token');
+      await AsyncStorage.removeItem('studentId');
+      await AsyncStorage.removeItem('centerId');
+      await AsyncStorage.removeItem('role');
+
+      setUser('');
+      setIsLoggedIn(false);
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setLogoutLoading(false);
     }
   };
 
@@ -96,166 +118,397 @@ const Profile = () => {
     actionSheetRef.current?.hide();
   };
 
-  // Navigate to timing slot update screen
+  const openCamera = async () => {
+    try {
+      const image = await ImagePicker.openCamera({
+        mediaType: 'photo',
+        cropping: true,
+        compressImageQuality: 0.7,
+        width: 1000,
+        height: 1000,
+      });
+
+      setImgLoading(true);
+
+      await profileImageUpdate(image);
+
+      showToast('Profile updated successfully');
+
+      setRefresh(!refresh);
+    } catch (error: any) {
+      showToast(error?.message || 'Something went wrong');
+    } finally {
+      setImgLoading(false);
+      hideActionSheet();
+    }
+  };
+
+  const openGallery = async () => {
+    try {
+      const image = await ImagePicker.openPicker({
+        mediaType: 'photo',
+        cropping: true,
+        compressImageQuality: 0.7,
+        width: 1000,
+        height: 1000,
+      });
+
+      setImgLoading(true);
+
+      await profileImageUpdate(image);
+
+      showToast('Profile updated successfully');
+
+      setRefresh(!refresh);
+    } catch (error: any) {
+      showToast(error?.message || 'Something went wrong');
+    } finally {
+      setImgLoading(false);
+      hideActionSheet();
+    }
+  };
+
   const navigateToTimingSlotUpdate = () => {
     navigation.navigate(NavigationString.TimingSlot, {
       doctorId: userDetails?.doctorId?._id,
       currentTiming: {
         startTime: userDetails?.doctorId?.startTime,
         endTime: userDetails?.doctorId?.endTime,
-        bookingBeforeTime: userDetails?.doctorId?.bookingBeforeTime
-      }
+        bookingBeforeTime:
+          userDetails?.doctorId?.bookingBeforeTime,
+      },
     });
   };
 
-  useEffect(() => {
-    getUserDetails();
-  }, [loading, imgLoading]);
+  const SectionTitle = ({ title, onPress }: any) => (
+    <View style={styles.sectionHeader}>
+      <Text style={styles.sectionTitle}>{title}</Text>
 
-  return (
-    <View style={{ flex: 1 }}>
-      <StatusBar backgroundColor={colors.greenCustom} barStyle="light-content" />
-      <EditProfileModel visible={visible} setVisible={setVisible} title="Update Profile" setLoading={setLoading} />
-      <View style={styles.profileView}>
-        <View style={styles.topView}>
-          <View style={styles.imgView}>
-            <ProfileImage url={userDetails?.image} onPress={showActionSheet} isLoading={imgLoading} />
-          </View>
-          <View style={styles.contentView}>
-            <TouchableOpacity onPress={() => setVisible(true)} style={styles.editIcon}>
-              <Feather name="edit" size={25} color={colors.white} />
-            </TouchableOpacity>
-            <View style={styles.textView}>
-              <Text style={styles.title}>Name</Text>
-              <Text style={styles.contentHeader}>{userDetails?.name}</Text>
-            </View>
-            <View style={styles.textView}>
-              <Text style={styles.title}>Email</Text>
-              <Text style={styles.contentHeader}>{userDetails?.email}</Text>
-            </View>
-            <View style={styles.textView}>
-              <Text style={styles.title}></Text>
-              <Text style={styles.contentHeader}></Text>
-            </View>
-          </View>
-        </View>
+      {onPress && (
+        <TouchableOpacity
+          style={styles.editSectionBtn}
+          onPress={onPress}>
+          <Feather
+            name="edit-2"
+            size={15}
+            color={theme.accent}
+          />
+        </TouchableOpacity>
+      )}
+    </View>
+  );
 
-        <View style={styles.bottomView}>
-          <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-            <View style={styles.detailsHeaderView}>
-              <Text style={styles.detailsHeader}>Details</Text>
-              <TouchableOpacity onPress={() => navigation.navigate(NavigationString.ProfileUpdate)} style={styles.editIcon}>
-                <Feather name="edit" size={25} color={colors.greenCustom} />
-              </TouchableOpacity>
-            </View>
-            
-            <View style={styles.detailsContainer}>
-              <View style={styles.detailsRow}>
-                <Text style={styles.detailsTitle}>Phone</Text>
-                <Text style={styles.detailsValue}>{userDetails?.mobile}</Text>
-              </View>
-              <View style={styles.detailsRow}>
-                <Text style={styles.detailsTitle}>Address</Text>
-                <Text style={styles.detailsValue}>{userDetails?.address}</Text>
-              </View>
-              <View style={styles.detailsRow}>
-                <Text style={styles.detailsTitle}>Clinic Phone Number</Text>
-                <Text style={styles.detailsValue}>{userDetails?.doctorId?.clinicContactNumber}</Text>
-              </View>
-              <View style={styles.detailsRow}>
-                <Text style={styles.detailsTitle}>DOB</Text>
-                <Text style={styles.detailsValue}>{userDetails?.doctorId?.dob}</Text>
-              </View>
-              <View style={styles.detailsRow}>
-                <Text style={styles.detailsTitle}>Gender</Text>
-                <Text style={styles.detailsValue}>{userDetails?.doctorId?.gender}</Text>
-              </View>
-              <View style={styles.detailsRow}>
-                <Text style={styles.detailsTitle}>Clinic Address</Text>
-                <Text style={styles.detailsValue}>{userDetails?.doctorId?.clinicAddress}</Text>
-              </View>
-              
-              {/* Timing Section with Update Button */}
-              <View style={styles.sectionHeader}>
-                <Text style={styles.sectionTitle}>Timing & Availability</Text>
-                <TouchableOpacity onPress={navigateToTimingSlotUpdate} style={styles.updateButton}>
-                  <Feather name="edit-2" size={18} color={colors.white} />
-                  <Text style={styles.updateButtonText}>Update Timing</Text>
-                </TouchableOpacity>
-              </View>
-
-              <View style={styles.detailsRow}>
-                <Text style={styles.detailsTitle}>Sitting Time</Text>
-                <Text style={styles.detailsValue}>{TimeFormate(userDetails?.doctorId?.startTime)}</Text>
-              </View>
-              <View style={styles.detailsRow}>
-                <Text style={styles.detailsTitle}>Leaving Time</Text>
-                <Text style={styles.detailsValue}>{TimeFormate(userDetails?.doctorId?.endTime)}</Text>
-              </View>
-              <View style={styles.detailsRow}>
-                <Text style={styles.detailsTitle}>Take Appointment Before</Text>
-                <Text style={styles.detailsValue}>{userDetails?.doctorId?.bookingBeforeTime || 0} Hour</Text>
-              </View>
-
-              {/* Fees Section */}
-              <View style={styles.sectionHeader}>
-                <Text style={styles.sectionTitle}>Fees & Experience</Text>
-              </View>
-              <View style={styles.detailsRow}>
-                <Text style={styles.detailsTitle}>Patient Fee</Text>
-                <Text style={styles.detailsValue}>₹ {userDetails?.doctorId?.fee}</Text>
-              </View>
-              <View style={styles.detailsRow}>
-                <Text style={styles.detailsTitle}>Regular Patient Fee</Text>
-                <Text style={styles.detailsValue}>₹ {userDetails?.doctorId?.oldFee || 0}</Text>
-              </View>
-              <View style={styles.detailsRow}>
-                <Text style={styles.detailsTitle}>Experience</Text>
-                <Text style={styles.detailsValue}>{userDetails?.doctorId?.experience || 0} Years</Text>
-              </View>
-
-              {/* Professional Details */}
-              <View style={styles.sectionHeader}>
-                <Text style={styles.sectionTitle}>Professional Details</Text>
-              </View>
-              <View style={styles.detailsRow}>
-                <Text style={styles.detailsTitle}>Department</Text>
-                <Text style={styles.detailsValue}>{userDetails?.doctorId?.department?.name}</Text>
-              </View>
-              <View style={styles.detailsRow}>
-                <Text style={styles.detailsTitle}>Specialization</Text>
-                <Text style={styles.detailsValue}>{userDetails?.doctorId?.specialization?.name}</Text>
-              </View>
-            </View>
-
-            <View style={{marginTop: 50}}>             
-              <CustomButton 
-                title="Log Out" 
-                onPress={logOut} 
-                isLoading={logOutLoading} 
-                backgroundColor={colors.greenCustom} 
-                textColor={colors.white} 
-              />
-            </View>
-          </ScrollView>
-        </View>
+  const InfoCard = ({ icon, label, value }: any) => (
+    <View style={styles.infoCard}>
+      <View style={styles.iconContainer}>
+        <FontAwesome5
+          name={icon}
+          size={16}
+          color={theme.accent}
+        />
       </View>
 
-      <ActionSheet ref={actionSheetRef} gestureEnabled={true} containerStyle={styles.actionSheetContainer}>
-        <View style={styles.closeButtonContainer}>
-          <TouchableOpacity onPress={hideActionSheet}>
-            <Feather name="x" size={24} color="black" />
-          </TouchableOpacity>
+      <View style={{ flex: 1 }}>
+        <Text style={styles.infoLabel}>{label}</Text>
+
+        <Text style={styles.infoValue}>
+          {value || 'Not Available'}
+        </Text>
+      </View>
+    </View>
+  );
+
+  if (loading) {
+    return (
+      <View style={styles.loaderContainer}>
+        <ActivityIndicator
+          size="large"
+          color={theme.accent}
+        />
+      </View>
+    );
+  }
+
+  return (
+    <View style={styles.container}>
+      <StatusBar
+        backgroundColor={theme.primary}
+        barStyle="light-content"
+      />
+
+      <EditProfileModel
+        visible={visible}
+        setVisible={setVisible}
+        title="Update Profile"
+        setLoading={setRefresh}
+      />
+
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 40 }}>
+
+        {/* HEADER */}
+        <View style={styles.header}>
+          <Animated.View
+            style={{
+              opacity: fadeAnim,
+              transform: [{ translateY: slideAnim }],
+              alignItems: 'center',
+            }}>
+
+            <View style={styles.profileWrapper}>
+              <ProfileImage
+                url={userDetails?.image}
+                onPress={showActionSheet}
+                isLoading={imgLoading}
+              />
+
+              <TouchableOpacity
+                style={styles.cameraBtn}
+                onPress={showActionSheet}>
+                <Feather
+                  name="camera"
+                  size={15}
+                  color={theme.white}
+                />
+              </TouchableOpacity>
+            </View>
+
+            <Text style={styles.name}>
+              {userDetails?.name || 'Doctor'}
+            </Text>
+
+            <Text style={styles.speciality}>
+              {userDetails?.doctorId?.specialization?.name ||
+                'Specialization'}
+            </Text>
+
+            <View style={styles.statsRow}>
+              <View style={styles.statBox}>
+                <Text style={styles.statNumber}>120+</Text>
+                <Text style={styles.statLabel}>
+                  Patients
+                </Text>
+              </View>
+
+              <View style={styles.statDivider} />
+
+              <View style={styles.statBox}>
+                <Text style={styles.statNumber}>5★</Text>
+                <Text style={styles.statLabel}>
+                  Rating
+                </Text>
+              </View>
+
+              <View style={styles.statDivider} />
+
+              <View style={styles.statBox}>
+                <Text style={styles.statNumber}>
+                  {userDetails?.doctorId?.experience || 0}+
+                </Text>
+
+                <Text style={styles.statLabel}>
+                  Experience
+                </Text>
+              </View>
+            </View>
+
+            <TouchableOpacity
+              style={styles.editProfileBtn}
+              onPress={() => setVisible(true)}>
+              <Feather
+                name="edit"
+                size={15}
+                color={theme.primary}
+              />
+
+              <Text style={styles.editProfileText}>
+                Edit Profile
+              </Text>
+            </TouchableOpacity>
+          </Animated.View>
         </View>
 
-        <View style={styles.cameratOptions}>
-          <TouchableOpacity style={styles.optionButton} onPress={openCamera}>
-            <Feather name="camera" size={40} color={colors.black} />
-            <Text style={styles.optionText}>Open Camera</Text>
+        {/* BODY */}
+        <Animated.View
+          style={{
+            opacity: fadeAnim,
+            transform: [{ translateY: slideAnim }],
+            paddingHorizontal: 16,
+          }}>
+
+          {/* PERSONAL */}
+          <SectionTitle
+            title="Personal Information"
+            onPress={() =>
+              navigation.navigate(
+                NavigationString.ProfileUpdate,
+              )
+            }
+          />
+
+          <InfoCard
+            icon="user"
+            label="Full Name"
+            value={userDetails?.name}
+          />
+
+          <InfoCard
+            icon="phone"
+            label="Mobile"
+            value={userDetails?.mobile}
+          />
+
+          <InfoCard
+            icon="envelope"
+            label="Email"
+            value={userDetails?.email}
+          />
+
+          <InfoCard
+            icon="map-marker-alt"
+            label="Address"
+            value={userDetails?.address}
+          />
+
+          {/* PROFESSIONAL */}
+          <SectionTitle title="Professional Details" />
+
+          <InfoCard
+            icon="stethoscope"
+            label="Department"
+            value={userDetails?.doctorId?.department?.name}
+          />
+
+          <InfoCard
+            icon="user-md"
+            label="Specialization"
+            value={
+              userDetails?.doctorId?.specialization?.name
+            }
+          />
+
+          <InfoCard
+            icon="briefcase"
+            label="Experience"
+            value={`${userDetails?.doctorId?.experience || 0} Years`}
+          />
+
+          {/* TIMING */}
+          <SectionTitle
+            title="Timing & Availability"
+            onPress={navigateToTimingSlotUpdate}
+          />
+
+          <InfoCard
+            icon="clock"
+            label="Start Time"
+            value={TimeFormate(
+              userDetails?.doctorId?.startTime,
+            )}
+          />
+
+          <InfoCard
+            icon="clock"
+            label="End Time"
+            value={TimeFormate(
+              userDetails?.doctorId?.endTime,
+            )}
+          />
+
+          <InfoCard
+            icon="bell"
+            label="Booking Before"
+            value={`${userDetails?.doctorId?.bookingBeforeTime || 0} Hour`}
+          />
+
+          {/* FEES */}
+          <SectionTitle title="Fees & Charges" />
+
+          <InfoCard
+            icon="rupee-sign"
+            label="Consultation Fee"
+            value={`₹ ${userDetails?.doctorId?.fee || 0}`}
+          />
+
+          <InfoCard
+            icon="users"
+            label="Old Patient Fee"
+            value={`₹ ${userDetails?.doctorId?.oldFee || 0}`}
+          />
+
+          {/* LOGOUT */}
+          <TouchableOpacity
+            style={styles.logoutBtn}
+            activeOpacity={0.8}
+            onPress={logout}>
+
+            {logoutLoading ? (
+              <ActivityIndicator
+                color={theme.white}
+                size="small"
+              />
+            ) : (
+              <>
+                <Feather
+                  name="log-out"
+                  size={18}
+                  color={theme.white}
+                />
+
+                <Text style={styles.logoutText}>
+                  Logout
+                </Text>
+              </>
+            )}
           </TouchableOpacity>
-          <TouchableOpacity style={styles.optionButton} onPress={openGallory}>
-            <Feather name="image" size={40} color={colors.black} />
-            <Text style={styles.optionText}>Open Gallery</Text>
+
+          <Text style={styles.version}>
+            MediCare App Version 1.0.0
+          </Text>
+        </Animated.View>
+      </ScrollView>
+
+      {/* ACTION SHEET */}
+      <ActionSheet
+        ref={actionSheetRef}
+        containerStyle={styles.sheetContainer}>
+
+        <Text style={styles.sheetTitle}>
+          Update Profile Picture
+        </Text>
+
+        <View style={styles.sheetRow}>
+          <TouchableOpacity
+            style={styles.sheetOption}
+            onPress={openCamera}>
+            <View style={styles.sheetIcon}>
+              <Feather
+                name="camera"
+                size={24}
+                color={theme.accent}
+              />
+            </View>
+
+            <Text style={styles.sheetText}>
+              Camera
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.sheetOption}
+            onPress={openGallery}>
+            <View style={styles.sheetIcon}>
+              <Feather
+                name="image"
+                size={24}
+                color={theme.accent}
+              />
+            </View>
+
+            <Text style={styles.sheetText}>
+              Gallery
+            </Text>
           </TouchableOpacity>
         </View>
       </ActionSheet>
@@ -266,139 +519,231 @@ const Profile = () => {
 export default Profile;
 
 const styles = StyleSheet.create({
-  profileView: {
+  container: {
     flex: 1,
-    backgroundColor: colors.greenCustom,
+    backgroundColor: theme.background,
   },
-  topView: {
-    flexDirection: 'row',
-    padding: 10,
-  },
-  imgView: {
-    width: '30%',
+
+  loaderContainer: {
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: theme.background,
   },
-  contentView: {
-    flex: 1,
-    paddingLeft: 15,
-    top: 25
+
+  header: {
+    backgroundColor: theme.primary,
+    paddingTop: Platform.OS === 'ios' ? 60 : 45,
+    paddingBottom: 35,
+    borderBottomLeftRadius: 35,
+    borderBottomRightRadius: 35,
+    marginBottom: 18,
   },
-  textView: {
-    marginBottom: 8,
+
+  profileWrapper: {
+    position: 'relative',
+    marginBottom: 16,
   },
-  title: {
-    fontSize: 14,
-    color: colors.lightGreen1,
-    fontWeight: "500"
-  },
-  contentHeader: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: colors.white,
-  },
-  editIcon: {
+
+  cameraBtn: {
     position: 'absolute',
-    top: 0,
-    right: 10,
-    zIndex: 5,
     bottom: 0,
-    width: 40,
-    height: 40,
+    right: 0,
+    width: 35,
+    height: 35,
+    borderRadius: 18,
+    backgroundColor: theme.accent,
     justifyContent: 'center',
     alignItems: 'center',
+    borderWidth: 3,
+    borderColor: theme.white,
   },
-  bottomView: {
-    flex: 1,
-    backgroundColor: colors.white,
-    borderTopLeftRadius: 40,
-    borderTopRightRadius: 40,
-    padding: 20,
+
+  name: {
+    fontSize: 26,
+    fontWeight: '700',
+    color: theme.white,
   },
-  scrollView: {
-    flex: 1,
+
+  speciality: {
+    fontSize: 14,
+    color: 'rgba(255,255,255,0.7)',
+    marginTop: 4,
+    marginBottom: 18,
   },
-  detailsHeaderView: {
+
+  statsRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 15,
-  },
-  detailsHeader: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: colors.greenCustom,
-    textDecorationLine: 'underline',
-  },
-  detailsContainer: {
-    marginVertical: 15,
-  },
-  detailsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 10,
-    paddingVertical: 5,
-  },
-  detailsTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: colors.black,
-    flex: 1,
-  },
-  detailsValue: {
-    fontSize: 16,
-    color: colors.black,
-    flex: 1,
-    textAlign: 'right',
-  },
-  actionSheetContainer: {
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    padding: 10,
-  },
-  closeButtonContainer: {
-    alignItems: 'flex-end',
-  },
-  cameratOptions: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
     alignItems: 'center',
-    marginTop: 10,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    borderRadius: 22,
+    paddingVertical: 14,
+    paddingHorizontal: 10,
+    width: width * 0.88,
+    marginBottom: 18,
   },
-  optionButton: {
+
+  statBox: {
+    flex: 1,
     alignItems: 'center',
-    justifyContent: 'center',
   },
-  optionText: {
-    color: 'grey',
-    marginVertical: 5,
+
+  statNumber: {
+    color: theme.white,
+    fontSize: 18,
+    fontWeight: '700',
+    marginBottom: 4,
   },
+
+  statLabel: {
+    color: 'rgba(255,255,255,0.7)',
+    fontSize: 12,
+  },
+
+  statDivider: {
+    width: 1,
+    height: 35,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+  },
+
+  editProfileBtn: {
+    backgroundColor: theme.white,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 22,
+    paddingVertical: 11,
+    borderRadius: 30,
+  },
+
+  editProfileText: {
+    color: theme.primary,
+    fontWeight: '600',
+    fontSize: 14,
+  },
+
   sectionHeader: {
+    marginTop: 22,
+    marginBottom: 14,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: 20,
-    marginBottom: 15,
-    paddingBottom: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.gray,
   },
+
   sectionTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
-    color: colors.greenCustom,
+    fontWeight: '700',
+    color: theme.text,
   },
-  updateButton: {
+
+  editSectionBtn: {
+    width: 34,
+    height: 34,
+    borderRadius: 12,
+    backgroundColor: theme.softBlue,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  infoCard: {
+    backgroundColor: theme.card,
+    borderRadius: 22,
+    padding: 16,
+    marginBottom: 14,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.greenCustom,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
+    shadowColor: '#000',
+    shadowOpacity: 0.04,
+    shadowOffset: {
+      width: 0,
+      height: 3,
+    },
+    shadowRadius: 8,
+    elevation: 2,
   },
-  updateButtonText: {
-    color: colors.white,
+
+  iconContainer: {
+    width: 50,
+    height: 50,
+    borderRadius: 18,
+    backgroundColor: theme.softBlue,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 15,
+  },
+
+  infoLabel: {
+    fontSize: 12,
+    color: theme.subText,
+    marginBottom: 4,
+  },
+
+  infoValue: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: theme.text,
+  },
+
+  logoutBtn: {
+    backgroundColor: theme.danger,
+    height: 58,
+    borderRadius: 22,
+    justifyContent: 'center',
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 34,
+  },
+
+  logoutText: {
+    color: theme.white,
+    fontWeight: '700',
+    fontSize: 15,
+  },
+
+  version: {
+    textAlign: 'center',
+    marginTop: 20,
+    fontSize: 12,
+    color: theme.subText,
+  },
+
+  sheetContainer: {
+    padding: 22,
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
+    backgroundColor: theme.white,
+  },
+
+  sheetTitle: {
+    textAlign: 'center',
+    fontSize: 18,
+    fontWeight: '700',
+    color: theme.text,
+    marginBottom: 25,
+  },
+
+  sheetRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+  },
+
+  sheetOption: {
+    alignItems: 'center',
+  },
+
+  sheetIcon: {
+    width: 70,
+    height: 70,
+    borderRadius: 24,
+    backgroundColor: theme.softBlue,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  sheetText: {
     fontSize: 14,
-    fontWeight: 'bold',
-    marginLeft: 5,
+    fontWeight: '600',
+    color: theme.text,
   },
 });

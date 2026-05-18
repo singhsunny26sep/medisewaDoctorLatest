@@ -300,19 +300,17 @@ const styles = StyleSheet.create({
     mainView: {
         width: '90%',
         backgroundColor: colors.white,
-        borderRadius: 16,
-        elevation: 8,
-        padding: 16,
-        borderWidth: 1,
-        borderColor: colors.lightGrey,
+        borderRadius: 20,
+        padding: 18,
         marginVertical: 8,
+        alignSelf: 'center',
         shadowColor: colors.greenCustom,
         shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.15,
+        shadowOpacity: 0.12,
         shadowRadius: 12,
-        overflow: 'hidden',
-        alignSelf: 'center',
-        position: 'relative'
+        elevation: 5,
+        borderWidth: 1,
+        borderColor: '#F0F0F0',
     },
     detailsMainView: {
         width: '100%',
@@ -321,39 +319,38 @@ const styles = StyleSheet.create({
         marginBottom: 6,
         flexDirection: 'row',
         alignItems: 'center',
-    
     },
     contentView: {
-        width: '75%',
+        width: '70%',
         padding: 8,
         borderRadius: 8,
         paddingRight: 12
     },
     avatarView: {
-        width: '25%',
+        width: '30%',
         padding: 6,
         alignItems: 'center',
         justifyContent: 'center',
         paddingLeft: 8
     },
     avatarOuter: {
-        width: 90,
-        height: 90,
-        borderRadius: 45,
+        width: 80,
+        height: 80,
+        borderRadius: 40,
         borderWidth: 3,
         borderColor: colors.lightGreen1,
         alignItems: 'center',
         justifyContent: 'center',
         shadowColor: colors.greenCustom,
         shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.2,
-        shadowRadius: 4,
-        elevation: 4
+        shadowOpacity: 0.15,
+        shadowRadius: 6,
+        elevation: 3
     },
     avatar: {
-        width: 84,
-        height: 84,
-        borderRadius: 42,
+        width: 72,
+        height: 72,
+        borderRadius: 36,
         borderWidth: 2,
         borderColor: colors.greenCustom,
         backgroundColor: colors.white,
@@ -366,12 +363,13 @@ const styles = StyleSheet.create({
         fontSize: 18,
         color: colors.black,
         fontWeight: '700',
-        marginBottom: 8
+        marginBottom: 10,
+        letterSpacing: -0.3,
     },
     subTitle: {
-        fontSize: 14,
+        fontSize: 13,
         color: colors.dark,
-        opacity: 0.8,
+        opacity: 0.85,
         marginLeft: 8,
         flex: 1
     },
@@ -389,7 +387,7 @@ const styles = StyleSheet.create({
     chipsRow: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginTop: 8,
+        marginTop: 10,
         flexWrap: 'wrap',
         gap: 8
     },
@@ -397,15 +395,18 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         backgroundColor: colors.secondary,
-        borderRadius: 14,
-        paddingVertical: 4,
-        paddingHorizontal: 8,
+        borderRadius: 16,
+        paddingVertical: 5,
+        paddingHorizontal: 10,
         marginRight: 6,
+        borderWidth: 1,
+        borderColor: '#E8E8E8',
     },
     chipText: {
-        fontSize: 12,
+        fontSize: 11,
         color: colors.dark,
-        marginLeft: 6
+        marginLeft: 5,
+        fontWeight: '500',
     },
     btnRow: {
         width: '100%',
@@ -424,13 +425,13 @@ const styles = StyleSheet.create({
     },
     sheetContainer: {
         backgroundColor: colors.white,
-        padding: 16,
-        borderTopLeftRadius: 16,
-        borderTopRightRadius: 16,
+        padding: 20,
+        borderTopLeftRadius: 20,
+        borderTopRightRadius: 20,
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: -2 },
-        shadowOpacity: 0.2,
-        shadowRadius: 4,
+        shadowOffset: { width: 0, height: -4 },
+        shadowOpacity: 0.15,
+        shadowRadius: 12,
         elevation: 10
     },
     sheetHandle: {
@@ -439,19 +440,20 @@ const styles = StyleSheet.create({
         backgroundColor: colors.lightGrey,
         borderRadius: 2,
         alignSelf: 'center',
-        marginBottom: 12
+        marginBottom: 16
     },
     sheetTitle: {
-        fontSize: 16,
+        fontSize: 18,
         color: colors.black,
         textAlign: 'center',
-        marginBottom: 12
+        marginBottom: 16,
+        fontWeight: '600',
     },
     sheetButtonsRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginBottom: 10
+        marginBottom: 12
     }
 })
 
