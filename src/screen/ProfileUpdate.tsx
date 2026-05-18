@@ -17,6 +17,7 @@ import CustomButton from '../utils/CustomButton'
 import CustomDateTimeInput from '../utils/CustomDateTimeInput'
 import moment from 'moment'
 import useDoctor from '../hook/useDoctor'
+import { Colors } from 'react-native/Libraries/NewAppScreen'
 
 const genders = [{ name: "Female", _id: 1 }, { name: "Male", _id: 2 }, { name: "Other", _id: 3 }]
 let regex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
@@ -338,7 +339,7 @@ const ProfileUpdate = () => {
 
     return (
         <ScrollView>
-            <View style={{ flex: 1,backgroundColor:colors.white }}>
+            <View style={{ flex: 1,backgroundColor:Colors.background }}>
                 <StatusBar backgroundColor={colors.greenCustom} barStyle="light-content" />
                 
                 {/* Profile Image Section */}

@@ -12,6 +12,7 @@ import ImagePicker from 'react-native-image-crop-picker';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {apiCall} from '../const/api';
+import { Colors } from 'react-native/Libraries/NewAppScreen';
 
 export default function Prescription({ appointmentId, patientId }) {
   const [imageUris, setImageUris] = useState([]);
@@ -133,7 +134,7 @@ export default function Prescription({ appointmentId, patientId }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.white,
+    backgroundColor: Colors.background,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 20,

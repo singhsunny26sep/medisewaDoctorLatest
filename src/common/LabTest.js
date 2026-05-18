@@ -13,6 +13,7 @@ import axios from 'axios';
 import {colors} from '../const/Colors';
 import {apiCall} from '../const/api';
 import Icon from 'react-native-vector-icons/Ionicons';
+import { Colors } from 'react-native/Libraries/NewAppScreen';
 
 export default function LabTest() {
   const [modalVisible, setModalVisible] = useState(false);
@@ -90,7 +91,7 @@ export default function LabTest() {
   );
 
   return (
-    <View style={{flex: 1, backgroundColor: colors.white}}>
+    <View style={{flex: 1, backgroundColor: Colors.background,}}>
       <View style={styles.searchContainer}>
         <Icon name="search" size={20} color={colors.gray} style={styles.searchIcon} />
         <TextInput

@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import {colors} from '../const/Colors';
+import { Colors } from 'react-native/Libraries/NewAppScreen';
 
 export default function Report() {
   const testData = [
@@ -110,13 +111,13 @@ export default function Report() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor:colors.white,
+    backgroundColor:Colors.background,
   },
   listContainer: {
     padding: 12,
   },
   card: {
-    backgroundColor:colors.white,
+    backgroundColor:Colors.background,
     borderRadius: 8,
     marginBottom: 12,
     shadowColor: '#000',
@@ -127,6 +128,8 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 2,
     elevation: 3,
+    borderWidth: 0.2,
+    borderColor: colors.white,
   },
   cardContent: {
     padding: 12,
