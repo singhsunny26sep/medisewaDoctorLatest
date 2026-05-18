@@ -19,7 +19,6 @@ const EditProfileModel = ({ visible, setVisible, title, setLoading, loading }: a
     const [mobile, setMobile] = useState<string>()
     const [address, setAddress] = useState<string>()
     const [error, setError] = useState<string>()
-
     const [valName, setValName] = useState<string>()
     const [valMobile, setValMobile] = useState<string>()
     const [valEmail, setValEmail] = useState<string>()

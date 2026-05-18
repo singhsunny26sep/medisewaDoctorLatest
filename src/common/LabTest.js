@@ -36,9 +36,9 @@ export default function LabTest() {
   }, []);
 
   useEffect(() => {
-    const filtered = reportData.filter(item => 
-      item.userId.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.description.toLowerCase().includes(searchQuery.toLowerCase())
+    const filtered = (reportData || []).filter(item => 
+      item.userId?.name?.toLowerCase()?.includes(searchQuery.toLowerCase()) ||
+      item.description?.toLowerCase()?.includes(searchQuery.toLowerCase())
     );
     setFilteredData(filtered);
   }, [searchQuery, reportData]);
@@ -63,22 +63,20 @@ export default function LabTest() {
       <View style={styles.textContainer}>
         <Text style={styles.text}>
           <Text style={styles.boldText}>Name: </Text>
-          {item.userId.name}
+          {item.userId?.name || 'N/A'}
         </Text>
         <Text style={styles.text}>
           <Text style={styles.boldText}>Type of report: </Text>
-          {item.description}
+          {item.description || 'N/A'}
         </Text>
         <Text style={[styles.text, {marginBottom: 5}]}>
           <Text style={styles.boldText}>Price: </Text>
-          {item.price}
+          {item.price || 'N/A'}
         </Text>
       </View>
 
       <View style={styles.timeContainer}>
-        <Text style={styles.time}>{`${new Date(
-          item.createdAt,
-        ).toLocaleString()}`}</Text>
+        <Text style={styles.time}>{item.createdAt ? new Date(item.createdAt).toLocaleString() : 'N/A'}</Text>
       </View>
     </View>
   );
@@ -104,9 +102,9 @@ export default function LabTest() {
       </View>
 
       <FlatList
-        data={filteredData}
+        data={filteredData || []}
         renderItem={renderItem}
-        keyExtractor={item => item._id}
+        keyExtractor={item => item?._id || Math.random().toString()}
         ListEmptyComponent={renderEmptyComponent}
       />
 
@@ -119,7 +117,7 @@ export default function LabTest() {
           style={styles.modalBackground}
           onPress={() => setModalVisible(false)}>
           <View style={styles.modalContent}>
-            <Image source={{uri: selectedImage}} style={styles.modalImage} />
+            {selectedImage ? <Image source={{uri: selectedImage}} style={styles.modalImage} /> : null}
           </View>
         </TouchableOpacity>
       </Modal>

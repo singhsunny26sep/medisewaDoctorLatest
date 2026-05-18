@@ -12,10 +12,10 @@ import {
   Platform,
   Modal,
   ActivityIndicator,
+  StatusBar,
 } from 'react-native';
 import DropDown from '../components/DropDown';
 import ImagePicker from 'react-native-image-crop-picker';
-import {colors} from '../const/Colors';
 import {MultiSelect} from 'react-native-element-dropdown';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import axios from 'axios';
@@ -23,6 +23,19 @@ import {apiCall} from '../const/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import RNHTMLtoPDF from 'react-native-html-to-pdf';
 import RNFS from 'react-native-fs';
+import { colors } from '../const/Colors';
+
+const COLORS = {
+  background: '#0F172A',
+  card: '#111827',
+  card2: '#1E293B',
+  white: '#FFFFFF',
+  text: '#F8FAFC',
+  subText: '#94A3B8',
+  primary: '#7C3AED',
+  secondary: '#A855F7',
+  border: 'rgba(255,255,255,0.08)',
+};
 
 const frequencyData = [
   {label: 'Once a day (OD)', value: 'Once a day (OD)'},
@@ -666,12 +679,14 @@ export default function AddPrescription({navigation, patientId, doctorId, appoin
 
   return (
     <ScrollView contentContainerStyle={styles.scrollContainer}>
+      <StatusBar backgroundColor={COLORS.background} barStyle="light-content" />
       <View style={styles.cardContainer}>
         <Text style={styles.header}>Add Prescription</Text>
         <View style={styles.sectionCard}>
           <Text style={styles.sectionHeader}>Vitals</Text>
           <TextInput
             placeholder="PR (Pulse Rate)"
+            placeholderTextColor={COLORS.subText}
             value={pr}
             onChangeText={setPr}
             keyboardType="numeric"
@@ -679,12 +694,14 @@ export default function AddPrescription({navigation, patientId, doctorId, appoin
           />
           <TextInput
             placeholder="BP (Blood Pressure)"
+            placeholderTextColor={COLORS.subText}
             value={bp}
             onChangeText={setBp}
             style={styles.input}
           />
           <TextInput
             placeholder="TEMP (°C)"
+            placeholderTextColor={COLORS.subText}
             value={temp}
             onChangeText={setTemp}
             keyboardType="numeric"
@@ -692,6 +709,7 @@ export default function AddPrescription({navigation, patientId, doctorId, appoin
           />
           <TextInput
             placeholder="SPO2%"
+            placeholderTextColor={COLORS.subText}
             value={spo2}
             onChangeText={setSpo2}
             keyboardType="numeric"
@@ -699,6 +717,7 @@ export default function AddPrescription({navigation, patientId, doctorId, appoin
           />
           <TextInput
             placeholder="RR (Resp. Rate)"
+            placeholderTextColor={COLORS.subText}
             value={rr}
             onChangeText={setRr}
             keyboardType="numeric"
@@ -706,6 +725,7 @@ export default function AddPrescription({navigation, patientId, doctorId, appoin
           />
           <TextInput
             placeholder="RBS (mg/dL)"
+            placeholderTextColor={COLORS.subText}
             value={rbs}
             onChangeText={setRbs}
             keyboardType="numeric"
@@ -720,6 +740,7 @@ export default function AddPrescription({navigation, patientId, doctorId, appoin
           </Text>
           <TextInput
             placeholder="Enter clinical summary or presentation..."
+            placeholderTextColor={COLORS.subText}
             value={clinicalSummary}
             onChangeText={setClinicalSummary}
             multiline
@@ -729,6 +750,7 @@ export default function AddPrescription({navigation, patientId, doctorId, appoin
           <Text style={styles.sectionLabel}>Clinic Issues</Text>
           <TextInput
             placeholder="Enter clinic issues..."
+            placeholderTextColor={COLORS.subText}
             value={clinicIssues}
             onChangeText={setClinicIssues}
             multiline
@@ -738,6 +760,7 @@ export default function AddPrescription({navigation, patientId, doctorId, appoin
           <Text style={styles.sectionLabel}>Allergy</Text>
           <TextInput
             placeholder="Enter allergy information..."
+            placeholderTextColor={COLORS.subText}
             value={allergy}
             onChangeText={setAllergy}
             multiline
@@ -747,6 +770,7 @@ export default function AddPrescription({navigation, patientId, doctorId, appoin
           <Text style={styles.sectionLabel}>Refer Doctor</Text>
           <TextInput
             placeholder="Enter referred doctor name or specialization..."
+            placeholderTextColor={COLORS.subText}
             value={referDoctor}
             onChangeText={setReferDoctor}
             style={styles.input}
@@ -786,6 +810,7 @@ export default function AddPrescription({navigation, patientId, doctorId, appoin
           </Text>
           <TextInput
             placeholder="Enter diagnosis manually..."
+            placeholderTextColor={COLORS.subText}
             value={diagnosisText}
             onChangeText={setDiagnosisText}
             style={styles.input}
@@ -858,7 +883,7 @@ export default function AddPrescription({navigation, patientId, doctorId, appoin
                     style={styles.removeManualMedicineButton}
                     onPress={() => removeManualMedicine(med.id)}
                   >
-                    <Ionicons name="close" size={20} color={colors.red} />
+                    <Ionicons name="close" size={20} color={COLORS.red} />
                   </TouchableOpacity>
                 </View>
               ))}
@@ -868,6 +893,7 @@ export default function AddPrescription({navigation, patientId, doctorId, appoin
           <Text style={[styles.sectionLabel,{marginTop:15}]}>Prescription Details</Text>
           <TextInput
             placeholder="Enter prescription details..."
+            placeholderTextColor={COLORS.subText}
             value={prescriptionDetails}
             onChangeText={setPrescriptionDetails}
             multiline
@@ -893,9 +919,9 @@ export default function AddPrescription({navigation, patientId, doctorId, appoin
               animationType="fade"
               onRequestClose={() => setImagePickerModalVisible(false)}
             >
-              <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.3)' }}>
-                <View style={{ backgroundColor: 'white', borderRadius: 10, padding: 24, width: 260 }}>
-                  <Text style={{ fontWeight: 'bold', fontSize: 18, marginBottom: 18, textAlign: 'center' }}>Select Image Source</Text>
+              <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.5)' }}>
+                <View style={{ backgroundColor: COLORS.card, borderRadius: 10, padding: 24, width: 260 }}>
+                  <Text style={{ fontWeight: 'bold', fontSize: 18, marginBottom: 18, textAlign: 'center', color: COLORS.text }}>Select Image Source</Text>
                   <TouchableOpacity
                     style={{ padding: 12, alignItems: 'center' }}
                     onPress={() => {
@@ -903,7 +929,7 @@ export default function AddPrescription({navigation, patientId, doctorId, appoin
                       pickImage(setPrescriptionImages, false, false, true); 
                     }}
                   >
-                    <Text style={{ fontSize: 16 }}>Take Photo</Text>
+                    <Text style={{ fontSize: 16, color: COLORS.text }}>Take Photo</Text>
                   </TouchableOpacity>
                   <TouchableOpacity
                     style={{ padding: 12, alignItems: 'center' }}
@@ -912,13 +938,13 @@ export default function AddPrescription({navigation, patientId, doctorId, appoin
                       pickImage(setPrescriptionImages, false, true); 
                     }}
                   >
-                    <Text style={{ fontSize: 16 }}>Choose from Gallery</Text>
+                    <Text style={{ fontSize: 16, color: COLORS.text }}>Choose from Gallery</Text>
                   </TouchableOpacity>
                   <TouchableOpacity
                     style={{ padding: 12, alignItems: 'center' }}
                     onPress={() => setImagePickerModalVisible(false)}
                   >
-                    <Text style={{ fontSize: 16, color: 'red' }}>Cancel</Text>
+                    <Text style={{ fontSize: 16, color: COLORS.primary }}>Cancel</Text>
                   </TouchableOpacity>
                 </View>
               </View>
@@ -938,7 +964,7 @@ export default function AddPrescription({navigation, patientId, doctorId, appoin
                   <TouchableOpacity
                     style={styles.closeIcon}
                     onPress={() => removePrescriptionImage(idx)}>
-                    <Ionicons name="close" size={20} color={colors.red} />
+                    <Ionicons name="close" size={20} color={COLORS.red} />
                   </TouchableOpacity>
                 </View>
               ))}
@@ -954,7 +980,7 @@ export default function AddPrescription({navigation, patientId, doctorId, appoin
           onPress={handleGeneratePDF}
           disabled={pdfLoading}>
           {pdfLoading ? (
-            <ActivityIndicator color={colors.white} />
+            <ActivityIndicator color={COLORS.white} />
           ) : (
             <Text style={styles.submitButtonText}>Generate PDF</Text>
           )}
@@ -967,11 +993,11 @@ export default function AddPrescription({navigation, patientId, doctorId, appoin
 const styles = StyleSheet.create({
   scrollContainer: {
     padding: 16,
-    backgroundColor: colors.secondary,
+    backgroundColor: COLORS.background,
     minHeight: '100%',
   },
   cardContainer: {
-    backgroundColor: colors.white,
+    backgroundColor: COLORS.card,
     borderRadius: 12,
     padding: 20,
     elevation: 3,
@@ -981,32 +1007,33 @@ const styles = StyleSheet.create({
     marginBottom: 24,
     fontWeight: 'bold',
     fontSize: 22,
-    color: colors.greenCustom,
+    color: COLORS.primary,
     textAlign: 'center',
   },
   input: {
     borderWidth: 1,
-    borderColor: colors.lightGrey2,
+    borderColor: COLORS.border,
     borderRadius: 8,
     marginBottom: 18,
     padding: 14,
-    backgroundColor: colors.quaternary,
+    backgroundColor: COLORS.card2,
     fontSize: 16,
     minHeight: 48,
+    color: COLORS.text,
   },
   multiSelect: {
     borderWidth: 1.5,
-    borderColor: colors.lightGrey2,
+    borderColor: COLORS.border,
     borderRadius: 8,
     paddingHorizontal: 10,
-    backgroundColor: colors.quaternary,
+    backgroundColor: COLORS.card2,
     minHeight: 50,
     marginBottom: 18,
   },
   selectedMedicineChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.quaternary,
+    backgroundColor: COLORS.card2,
     borderRadius: 8,
     margin: 4,
     paddingHorizontal: 8,
@@ -1014,39 +1041,40 @@ const styles = StyleSheet.create({
     elevation: 1,
   },
   selectedMedicineText: {
-    color: colors.greenCustom,
+    color: COLORS.primary,
     fontWeight: 'bold',
   },
   textArea: {
     borderWidth: 1,
-    borderColor: colors.lightGrey2,
+    borderColor: COLORS.border,
     borderRadius: 8,
     marginTop: 8,
     marginBottom: 18,
     padding: 14,
     minHeight: 100,
-    backgroundColor: colors.quaternary,
+    backgroundColor: COLORS.card2,
     fontSize: 16,
     textAlignVertical: 'top',
+    color: COLORS.text,
   },
   sectionLabel: {
     fontWeight: 'bold',
     fontSize: 16,
     marginBottom: 8,
     marginTop: 2,
-    color: colors.greenCustom,
+    color: COLORS.subText,
   },
   uploadButton: {
     borderWidth: 1,
-    borderColor: colors.lightGrey2,
+    borderColor: COLORS.border,
     borderRadius: 8,
     padding: 14,
     alignItems: 'center',
     marginBottom: 18,
-    backgroundColor: colors.quaternary,
+    backgroundColor: COLORS.card2,
   },
   uploadButtonText: {
-    color: colors.black,
+    color: COLORS.text,
     fontSize: 16,
   },
   prescriptionImage: {
@@ -1064,7 +1092,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   submitButton: {
-    backgroundColor: colors.greenCustom,
+    backgroundColor: COLORS.primary,
     padding: 16,
     borderRadius: 10,
     alignItems: 'center',
@@ -1073,7 +1101,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   submitButtonText: {
-    color: colors.white,  
+    color: COLORS.white,
     fontWeight: 'bold',
     fontSize: 18,
   },
@@ -1093,7 +1121,7 @@ const styles = StyleSheet.create({
     top: 2,
     right: 2,
     zIndex: 10,
-    backgroundColor: colors.white,
+    backgroundColor: COLORS.card,
     borderRadius: 16,
     width: 25,
     height: 25,
@@ -1105,10 +1133,10 @@ const styles = StyleSheet.create({
     shadowRadius: 2,
     elevation: 4,
     borderWidth: 1,
-    borderColor: colors.lightGrey2,
+    borderColor: COLORS.border,
   },
   sectionCard: {
-    backgroundColor: colors.quaternary,
+    backgroundColor: COLORS.card2,
     borderRadius: 10,
     padding: 16,
     marginBottom: 18,
@@ -1121,19 +1149,19 @@ const styles = StyleSheet.create({
   sectionHeader: {
     fontSize: 17,
     fontWeight: 'bold',
-    color: colors.greenCustom,
+    color: COLORS.primary,
     marginBottom: 12,
     marginTop: 0,
     letterSpacing: 0.2,
   },
   loadingText: {
-    color: colors.greenCustom,
+    color: COLORS.primary,
     fontSize: 14,
     marginTop: 10,
     textAlign: 'center',
   },
   loadMoreButton: {
-    backgroundColor: colors.greenCustom,
+    backgroundColor: COLORS.primary,
     padding: 12,
     borderRadius: 8,
     alignItems: 'center',
@@ -1141,7 +1169,7 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   loadMoreButtonText: {
-    color: colors.white,  
+    color: COLORS.white,
     fontWeight: 'bold',
     fontSize: 16,
   },
@@ -1158,20 +1186,20 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   manualMedicineDetails: {
-    color: colors.greenCustom,
+    color: COLORS.primary,
   },
   removeManualMedicineButton: {
     padding: 5,
   },
   addManualButton: {
-    backgroundColor: colors.greenCustom,
+    backgroundColor: COLORS.primary,
     padding: 12,
     borderRadius: 8,
     alignItems: 'center',
     marginBottom: 18,
   },
   addManualButtonText: {
-    color: colors.white,
+    color: COLORS.white,
     fontWeight: 'bold',
   },
 });

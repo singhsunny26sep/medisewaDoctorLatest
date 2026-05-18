@@ -5,63 +5,62 @@ import {
   TouchableOpacity,
   StyleSheet,
   SafeAreaView,
+  StatusBar,
 } from 'react-native';
-import {colors} from '../const/Colors';
 import Precription from '../common/Precription';
-import PrecriptionText from '../common/AddPrescription';
-import LabTest from '../common/LabTest';
-import LabTestPatient from '../common/LabTestPatient';
-import Report from '../common/LabTestPatient';
 import AddPrescription from '../common/AddPrescription';
+import LabTest from '../common/LabTest';
+import Report from '../common/LabTestPatient';
+
+const COLORS = {
+  background: '#0F172A',
+  card: '#111827',
+  card2: '#1E293B',
+  white: '#FFFFFF',
+  text: '#F8FAFC',
+  subText: '#94A3B8',
+  primary: '#7C3AED',
+  secondary: '#A855F7',
+  border: 'rgba(255,255,255,0.08)',
+};
 
 export default function UploadPrecription({navigation, route}) {
   const { patientId, doctorId, appointmentId } = route.params || {};
-  console.log('UploadPrecription received:', { patientId, doctorId, appointmentId });
   const [activeTab, setActiveTab] = useState('Precription');
+
+  const tabs = [
+    { id: 'Precription', label: 'Upload Prescription' },
+    { id: 'AddPrescription', label: 'Add Prescription' },
+    { id: 'LabTest', label: 'Lab Test' },
+    { id: 'Report', label: 'Old Report' },
+  ];
 
   return (
     <SafeAreaView style={styles.container}>
+      <StatusBar backgroundColor={COLORS.background} barStyle="light-content" />
+      
       <View style={styles.tabBar}>
-        <TouchableOpacity
-          style={[
-            styles.tabButton,
-            activeTab === 'Precription' && styles.activeTab,
-          ]}
-          onPress={() => setActiveTab('Precription')}>
-          <Text style={styles.tabLabel(activeTab === 'Precription')}>
-            Upload Precription
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[
-            styles.tabButton,
-            activeTab === 'AddPrescription' && styles.activeTab,
-          ]}
-          onPress={() => setActiveTab('AddPrescription')}>
-          <Text style={styles.tabLabel(activeTab === 'AddPrescription')}>
-            Add Precription
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[
-            styles.tabButton,
-            activeTab === 'LabTest' && styles.activeTab,
-          ]}
-          onPress={() => setActiveTab('LabTest')}>
-          <Text style={styles.tabLabel(activeTab === 'LabTest')}>LabTest</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.tabButton, activeTab === 'Report' && styles.activeTab]}
-          onPress={() => setActiveTab('Report')}>
-          <Text style={styles.tabLabel(activeTab === 'Report')}>
-            Old Report
-          </Text>
-        </TouchableOpacity>
+        {tabs.map(tab => (
+          <TouchableOpacity
+            key={tab.id}
+            style={[
+              styles.tabButton,
+              activeTab === tab.id && styles.activeTab,
+            ]}
+            onPress={() => setActiveTab(tab.id)}>
+            <Text style={styles.tabLabel(activeTab === tab.id)}>
+              {tab.label}
+            </Text>
+          </TouchableOpacity>
+        ))}
       </View>
-      {activeTab === 'Precription' && <Precription appointmentId={appointmentId} patientId={patientId} />}
-      {activeTab === 'AddPrescription' && <AddPrescription navigation={navigation} patientId={patientId} doctorId={doctorId} appointmentId={appointmentId} />}
-      {activeTab === 'Report' && <Report />}
-      {activeTab === 'LabTest' && <LabTest />}
+
+      <View style={styles.content}>
+        {activeTab === 'Precription' && <Precription appointmentId={appointmentId} patientId={patientId} />}
+        {activeTab === 'AddPrescription' && <AddPrescription navigation={navigation} patientId={patientId} doctorId={doctorId} appointmentId={appointmentId} />}
+        {activeTab === 'Report' && <Report />}
+        {activeTab === 'LabTest' && <LabTest />}
+      </View>
     </SafeAreaView>
   );
 }
@@ -69,34 +68,40 @@ export default function UploadPrecription({navigation, route}) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.white,
+    backgroundColor: COLORS.background,
   },
   tabBar: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
-    backgroundColor: colors.white,
-    paddingVertical: 5,
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    flexWrap: 'wrap',
+    backgroundColor: COLORS.card,
+    paddingVertical: 8,
+    paddingHorizontal: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
   },
   tabButton: {
     flex: 1,
+    minWidth: '25%',
     alignItems: 'center',
-    paddingVertical: 5,
-    justifyContent: 'center',
-    borderRadius: 8,
-    backgroundColor: colors.transparent,
-    marginHorizontal: 3,
+    paddingVertical: 12,
+    paddingHorizontal: 4,
+    borderRadius: 12,
+    marginHorizontal: 2,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    marginBottom: 8,
   },
   activeTab: {
-    backgroundColor: colors.greenCustom,
+    backgroundColor: COLORS.primary,
   },
   tabLabel: isActive => ({
-    color: isActive ? 'white' : colors.black,
-    fontWeight: isActive ? 'bold' : 'normal',
-    fontSize: 16,
+    color: isActive ? COLORS.white : COLORS.subText,
+    fontWeight: isActive ? '700' : '500',
+    fontSize: 11,
     textAlign: 'center',
   }),
+  content: {
+    flex: 1,
+    backgroundColor: COLORS.background,
+  },
 });
