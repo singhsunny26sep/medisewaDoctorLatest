@@ -4,27 +4,29 @@ import Icon from 'react-native-vector-icons/Ionicons'; // Assuming react-native-
 import { colors } from '../const/Colors';
 
 interface CustomInputProps extends TextInputProps {
-    label?: string; // Optional label for the input
-    isPassword?: boolean; // Indicates if the input is a password
-    error?: boolean; // Indicates if there's an error
-    errorMessage?: string; // Error message to display
+    label?: string;                // Optional label for the input
+    isPassword?: boolean;          // Indicates if the input is a password
+    error?: boolean;               // Indicates if there's an error
+    errorMessage?: string;         // Error message to display
     customStyles?: {
         container?: StyleProp<ViewStyle>;
         label?: StyleProp<TextStyle>;
         input?: StyleProp<TextStyle>;
+        inputWrapper?: StyleProp<ViewStyle>;
         error?: StyleProp<TextStyle>;
         toggleIcon?: StyleProp<TextStyle>;
-    }; // Custom styles for container, label, input, error, and toggle icon
+    }; // Custom styles
 }
 
-const CustomInput: React.FC<CustomInputProps> = ({ label, value, onChangeText, placeholder, placeholderTextColor = 'black', error = false, errorMessage, isPassword = false, customStyles = {}, ...rest }) => {
-    const [isSecure, setIsSecure] = useState(isPassword); // Manage secure text entry state
+const CustomInput: React.FC<CustomInputProps> = ({ label, value, onChangeText, placeholder, placeholderTextColor: propPlaceholderColor, error = false, errorMessage, isPassword = false, customStyles = {}, ...rest }) => {
+    const [isSecure, setIsSecure] = useState(isPassword);
+    const placeholderColor = propPlaceholderColor ?? customStyles.placeholderTextColor ?? colors.black;
 
     return (
         <View style={[styles.inputContainer, customStyles.container]}>
             {label && <Text style={[styles.inputLabel, customStyles.label]}>{label}</Text>}
-            <View style={styles.inputWrapper}>
-                <TextInput value={value} placeholder={placeholder} placeholderTextColor={placeholderTextColor ? placeholderTextColor : colors.black} onChangeText={onChangeText} secureTextEntry={isSecure} style={[styles.inputField, customStyles.input, { borderColor: error ? 'red' : colors.greenCustom },]}{...rest} />
+            <View style={[styles.inputWrapper, customStyles.inputWrapper]}>
+                <TextInput value={value} placeholder={placeholder} placeholderTextColor={placeholderColor} onChangeText={onChangeText} secureTextEntry={isSecure} style={[styles.inputField, customStyles.input, { borderColor: error ? 'red' : colors.greenCustom },]}{...rest} />
                 {isPassword && (
                     <TouchableOpacity onPress={() => setIsSecure(!isSecure)} style={styles.toggleButton}>
                         <Icon name={isSecure ? 'eye-off-outline' : 'eye-outline'} size={20} color={colors.greenCustom} style={customStyles.toggleIcon} />

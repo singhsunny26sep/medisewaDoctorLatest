@@ -169,7 +169,7 @@ const Home = (): React.JSX.Element => {
 
           <View style={styles.headerTop}>
             <TouchableOpacity style={styles.menuBtn}>
-              <Feather name="menu" size={22} color="#fff" />
+              {/* <Feather name="menu" size={22} color="#fff" /> */}
             </TouchableOpacity>
 
             <View style={styles.headerRight}>

@@ -97,49 +97,7 @@ export default function MobileVerify({ route, navigation }) {
     return () => clearInterval(timer);
   }, []);
 
-  const handleVerifyOTP = async () => {
-    const otpString = otp.join('');
-
-    if (otpString.length !== 6) {
-      setError('Please enter a valid 6-digit OTP');
-      return;
-    }
-
-    setError('');
-    setLoading(true);
-
-    try {
-      const fcmToken = await getFcmToken();
-
-      const response = await axios.post(
-        `${apiCall.mainUrl}/users/verify/otp`,
-        {
-          sessionId: details,
-          otp: otpString,
-          mobile: mobile,
-          fcmToken: fcmToken,
-        },
-      );
-
-      setLoading(false);
-
-      if (response.data.success && response.data.token) {
-        await AsyncStorage.setItem('token', response.data.token);
-
-        setIsLoggedIn(true);
-
-        showToast('OTP Verified!');
-      } else {
-        setError(
-          response.data.msg || 'Failed to verify OTP. Please try again.',
-        );
-      }
-    } catch (err) {
-      setLoading(false);
-
-      setError('Failed to verify OTP. Please try again.');
-    }
-  };
+  
 
   const handleResendOTP = async () => {
     if (!canResend) return;
@@ -161,12 +119,18 @@ export default function MobileVerify({ route, navigation }) {
     }, 1000);
 
     try {
+      const requestBody = {
+        mobile: mobile,
+      };
+      
+      console.log('Resend OTP Request Body:', requestBody);
+      
       const response = await axios.post(
         `${apiCall.mainUrl}/users/request/otp`,
-        {
-          mobile: mobile,
-        },
+        requestBody,
       );
+
+      console.log('Resend OTP Response:', response.data);
 
       if (response.data && response.data.success) {
         showToast('OTP resent successfully!');
@@ -177,13 +141,67 @@ export default function MobileVerify({ route, navigation }) {
         setResendCountdown(0);
       }
     } catch (error) {
+      console.log('Resend OTP Error:', error.response?.data || error.message);
       showToast('Failed to resend OTP. Please try again.');
 
       setCanResend(true);
       setResendCountdown(0);
     }
   };
+const handleVerifyOTP = async () => {
+    const otpString = otp.join('');
+    
+    console.log('OTP String:', otpString);
+    console.log('Mobile:', mobile);
+    console.log('Session ID:', details);
 
+    if (otpString.length !== 6) {
+      setError('Please enter a valid 6-digit OTP');
+      return;
+    }
+
+    setError('');
+    setLoading(true);
+
+    try {
+      const fcmToken = await getFcmToken();
+      
+      const requestBody = {
+        sessionId: details,
+        otp: otpString,
+        mobile: mobile,
+        fcmToken: fcmToken,
+        role:"doctor",
+      };
+      
+      console.log('Request Body:', requestBody);
+
+      const response = await axios.post(
+        `${apiCall.mainUrl}/users/verify/otp`,
+        requestBody,
+      );
+
+      console.log('Response:', response.data);
+
+      setLoading(false);
+
+      if (response.data.success && response.data.token) {
+        await AsyncStorage.setItem('token', response.data.token);
+
+        setIsLoggedIn(true);
+
+        showToast('OTP Verified!');
+      } else {
+        setError(
+          response.data.msg || 'Failed to verify OTP. Please try again.',
+        );
+      }
+    } catch (err) {
+      setLoading(false);
+      console.log('Error:', err.response?.data || err.message);
+      setError('Failed to verify OTP. Please try again.');
+    }
+  };
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar

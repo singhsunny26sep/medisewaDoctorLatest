@@ -78,7 +78,24 @@ const useBooking = () => {
             console.error(error);
         }
     };
-    return { getDoctorBookings, addBooking, getPatientBookings, cancleBooking, getBookingHistorybyDoctorId, getBookingByDoctorId }
+
+    // Get lab tests by appointment ID
+    const getLabTestsByAppointmentId = async (appointmentId: string) => {
+        try {
+            const url = `${apiCall.mainUrl}/labs/getByAppoinmentId/${appointmentId}`;
+            console.log('Fetching lab tests from URL:', url);
+            const response = await axios.get(url, {
+                headers: optionsGet
+            });
+            return response.data;
+        } catch (error: any) {
+            console.log("error fetching lab tests: ", error?.response?.data);
+            console.error(error);
+            throw error;
+        }
+    };
+
+    return { getDoctorBookings, addBooking, getPatientBookings, cancleBooking, getBookingHistorybyDoctorId, getBookingByDoctorId, getLabTestsByAppointmentId }
 }
 
 export default useBooking

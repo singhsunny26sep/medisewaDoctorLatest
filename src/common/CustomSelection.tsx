@@ -180,32 +180,54 @@ import React, { useState, useEffect } from 'react';
 import DropDownPicker from 'react-native-dropdown-picker';
 import { colors } from '../const/Colors';
 
-const CustomSelection = ({ title, data, defaultValue, setDataValue, label, searchAble, error, errorMessage, customStyles, setErrorMsg }: any) => {
+const CustomSelection = ({
+    title,
+    data,
+    defaultValue,
+    setDataValue,
+    label,
+    labelStyle,
+    dropdownStyle,
+    dropDownContainerStyle: dropDownContainerStyleProp,
+    searchAble,
+    error,
+    errorMessage,
+    customStyles,
+    setErrorMsg
+}: any) => {
     const [open, setOpen] = useState<boolean>(false);
     const [value, setValue] = useState<any>(null);
 
     useEffect(() => {
         if (defaultValue) {
-            // Set initial value only if it's available, otherwise leave as null
-            setValue({ label: defaultValue.name, value: defaultValue.value });
+            setValue({ label: defaultValue.name, value: defaultValue._id });
         }
-    }, [defaultValue]);  // This ensures it updates when the defaultValue changes
+    }, [defaultValue]);
 
     const handleSelect = (item: any) => {
-        // Update the selected value and close the dropdown
         setValue({ label: item.name, value: item._id });
         setOpen(false);
-        setDataValue(item);  // Pass selected item to parent component
-        setErrorMsg('');  // Reset error message
+        setDataValue(item);
+        setErrorMsg('');
     };
+
+    const mergedDropDownContainerStyle = [
+        styles.dropDownContainer,
+        dropDownContainerStyleProp,
+    ];
+
+    const mergedDropdownStyle = [
+        styles.dropdown,
+        dropdownStyle,
+    ];
 
     return (
         <View>
-            {label && <Text style={[styles.inputLabel]}>{label}</Text>}
+            {label && <Text style={[styles.inputLabel, labelStyle]}>{label}</Text>}
             <DropDownPicker
                 open={open}
                 setOpen={setOpen}
-                value={value ? value.value : null}  // Use state value for controlling the selection
+                value={value ? value.value : null}
                 setValue={setValue}
                 items={data.map((item: any) => ({
                     label: item.name,
@@ -215,16 +237,18 @@ const CustomSelection = ({ title, data, defaultValue, setDataValue, label, searc
                 searchPlaceholder="Type to search..."
                 onSelectItem={handleSelect}
                 placeholder={title}
-                style={styles.dropdown}
-                dropDownContainerStyle={styles.dropDownContainer}
+                placeholderStyle={{ color: 'rgba(255,255,255,0.5)' }}
+                style={mergedDropdownStyle}
+                dropDownContainerStyle={mergedDropDownContainerStyle}
                 listMode="SCROLLVIEW"
                 searchTextInputStyle={{
-                    color: colors.black,
+                    color: '#FFFFFF',
                     borderWidth: 1,
                     borderColor: colors.greenCustom,
-                    height: 40
+                    height: 40,
                 }}
-                searchPlaceholderTextColor="grey"
+                searchPlaceholderTextColor="rgba(255,255,255,0.5)"
+                textStyle={{ color: '#FFFFFF' }}
             />
             {error && errorMessage && (
                 <Text style={[styles.errorText, customStyles?.error]}>{errorMessage}</Text>

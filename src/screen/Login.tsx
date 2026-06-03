@@ -99,7 +99,7 @@ const Login = ({ navigation, route }: any): React.JSX.Element => {
                         <View style={[styles.overlay, { backgroundColor: 'rgba(99, 102, 241, 0.85)' }]}>
                             <View style={styles.logoContainer}>
                                 <Icon name="restaurant" size={60} color={THEME.background} />
-                                <Text style={styles.appName}>Foodie App</Text>
+                                <Text style={styles.appName}>Medisewa </Text>
                             </View>
                             <Text style={styles.tagline}>Welcome Back!</Text>
                             <Text style={styles.subTagline}>Sign in to continue your culinary journey</Text>

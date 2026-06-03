@@ -58,12 +58,7 @@ const MainNavigation = (): React.JSX.Element => {
                 if (
                     cameraPermission !== PermissionsAndroid.RESULTS.GRANTED ||
                     galleryPermission !== PermissionsAndroid.RESULTS.GRANTED
-                ) {
-                    Alert.alert(
-                        'Permission Denied',
-                        'Camera and Storage permissions are required to use this feature.'
-                    );
-                }
+                ){}
             } else {
                 // iOS permissions
                 const cameraStatus = await check(PERMISSIONS.IOS.CAMERA);

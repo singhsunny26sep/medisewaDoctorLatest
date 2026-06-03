@@ -124,6 +124,7 @@ export default function MobileLogin({ navigation }) {
   };
 
   const handleRequestOTP = async () => {
+    
     if (!mobile) {
       setMobileError('Mobile number is required');
       return;
@@ -141,6 +142,7 @@ export default function MobileLogin({ navigation }) {
         `${apiCall.mainUrl}/users/request/otp`,
         {
           mobile,
+          role: 'doctor',
         },
       );
 
@@ -157,6 +159,8 @@ export default function MobileLogin({ navigation }) {
         navigation.navigate('MobileVerify', {
           mobile,
           details,
+          role: 'doctor',
+          
         });
       } else {
         setMobileError('Failed to send OTP');
@@ -258,7 +262,7 @@ export default function MobileLogin({ navigation }) {
               }}>
               
               <Text style={styles.welcomeTitle}>
-                MediCare+
+                MediSewa
               </Text>
 
               <Text style={styles.welcomeSubtitle}>
@@ -490,7 +494,7 @@ export default function MobileLogin({ navigation }) {
           {/* FOOTER */}
           <View style={styles.footer}>
             <Text style={styles.footerText}>
-              © 2026 MediCare+ Healthcare
+              © 2026 MediSewa Healthcare
             </Text>
           </View>
         </ScrollView>

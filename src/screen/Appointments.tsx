@@ -87,12 +87,14 @@ const Appointments = () => {
       const response = await getBookingByDoctorId(newPage, 10)
 
       if (response) {
+        const result = response?.result || response?.slots || response?.data || response
+
         if (isRefreshing) {
-          setAppointments(response?.result || [])
+          setAppointments(Array.isArray(result) ? result : [])
         } else {
           setAppointments(prev => [
             ...prev,
-            ...(response?.result || []),
+            ...(Array.isArray(result) ? result : []),
           ])
         }
 

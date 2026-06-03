@@ -9,6 +9,7 @@ import Profile from '../screen/Profile';
 import {NavigationString} from '../const/NavigationString';
 import MyPatient from '../screen/MyPatient';
 import Appointments from '../screen/Appointments';
+import AppointmentView from '../components/AppointmentView';
 
 const Drawer = createDrawerNavigator();
 
@@ -54,7 +55,7 @@ const DrawerNavigator = (): React.JSX.Element => {
       />
       <Drawer.Screen
         name={NavigationString.Appointments}
-        component={Appointments}
+        component={AppointmentView}
         options={{
           title: 'Appointment',
           drawerIcon: ({color}) => (
