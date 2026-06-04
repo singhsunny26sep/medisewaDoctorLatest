@@ -275,7 +275,7 @@ const Profile = () => {
             </View>
 
             <Text style={styles.name}>
-              {userDetails?.name || 'Doctor'}
+             {userDetails?.doctorId?.name || userDetails?.name}
             </Text>
 
             <Text style={styles.speciality}>
@@ -347,11 +347,11 @@ const Profile = () => {
             }
           />
 
-          <InfoCard
-            icon="user"
-            label="Full Name"
-            value={userDetails?.name}
-          />
+<InfoCard
+             icon="user"
+             label="Full Name"
+             value={userDetails?.doctorId?.name || userDetails?.name}
+           />
 
           <InfoCard
             icon="phone"
@@ -365,14 +365,20 @@ const Profile = () => {
             value={userDetails?.email}
           />
 
-          <InfoCard
-            icon="map-marker-alt"
-            label="Address"
-            value={userDetails?.address}
-          />
+<InfoCard
+             icon="map-marker-alt"
+             label="Address"
+             value={userDetails?.address}
+           />
 
-          {/* PROFESSIONAL */}
-          <SectionTitle title="Professional Details" />
+           <InfoCard
+             icon="genderless"
+             label="Gender"
+             value={userDetails?.doctorId?.gender || userDetails?.gender}
+           />
+
+           {/* PROFESSIONAL */}
+           <SectionTitle title="Professional Details" />
 
           <InfoCard
             icon="stethoscope"
