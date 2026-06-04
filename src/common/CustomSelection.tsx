@@ -249,6 +249,11 @@ const CustomSelection = ({
                 }}
                 searchPlaceholderTextColor="rgba(255,255,255,0.5)"
                 textStyle={{ color: '#FFFFFF' }}
+                dropDownTextStyle={{ color: '#FFFFFF' }}
+                placeholderTextStyle={{ color: 'rgba(255,255,255,0.5)' }}
+                labelStyle={{ color: '#FFFFFF' }}
+                arrowIconStyle={{ tintColor: '#FFFFFF' }}
+                tickIconStyle={{ tintColor: '#FFFFFF' }}
             />
             {error && errorMessage && (
                 <Text style={[styles.errorText, customStyles?.error]}>{errorMessage}</Text>
@@ -266,11 +271,13 @@ const styles = StyleSheet.create({
         borderColor: colors.greenCustom,
         borderWidth: 1,
         zIndex: 1000,
+        backgroundColor: '#1E293B',
     },
     dropDownContainer: {
         width: '100%',
         alignSelf: 'center',
         borderColor: colors.greenCustom,
+        backgroundColor: '#1E293B',
     },
     inputLabel: {
         color: colors.greenCustom,

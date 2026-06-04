@@ -419,7 +419,7 @@ const ProfileUpdate = () => {
 
   return (
     <ScrollView>
-      <View style={{flex: 1, backgroundColor: COLORS.background}}>
+      <View >
         <StatusBar
           backgroundColor={COLORS.background}
           barStyle="light-content"
@@ -727,7 +727,7 @@ const ProfileUpdate = () => {
               style={styles.openCamera}
               onPress={() => openGallory('profile')}>
               <EvilIcons name="image" size={40} color={colors.black} />
-              <Text style={{color: 'grey', marginVertical: 5}}>
+              <Text style={{color: COLORS.subText, marginVertical: 5}}>
                 Open Gallery
               </Text>
             </TouchableOpacity>
@@ -770,7 +770,7 @@ const ProfileUpdate = () => {
               style={styles.openCamera}
               onPress={() => openGallory('signature')}>
               <EvilIcons name="image" size={40} color={colors.black} />
-              <Text style={{color: 'grey', marginVertical: 5}}>
+              <Text style={{color: COLORS.subText, marginVertical: 5}}>
                 Open Gallery
               </Text>
             </TouchableOpacity>
@@ -814,11 +814,13 @@ const styles = StyleSheet.create({
     borderColor: COLORS.primary,
     borderWidth: 1,
     zIndex: 1000,
+    backgroundColor: COLORS.card2,
   },
   dropDownContainer: {
     width: '90%',
     alignSelf: 'center',
     borderColor: COLORS.primary,
+    backgroundColor: COLORS.card2,
   },
   signatureContainer: {
     width: 120,
