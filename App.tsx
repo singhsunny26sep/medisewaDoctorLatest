@@ -11,6 +11,7 @@ const App = (): React.JSX.Element => {
   useEffect(() => {
     const unsubscribeForeground = messaging().onMessage(async (remoteMessage) => {
       try {
+        console.log('📱 Foreground FCM message received:', remoteMessage)
         if (remoteMessage?.data) {
           NotificationService.handleIncomingNotification(remoteMessage.data)
         }
@@ -21,6 +22,7 @@ const App = (): React.JSX.Element => {
 
     const unsubscribeOpenedApp = messaging().onNotificationOpenedApp((remoteMessage) => {
       try {
+        console.log('📱 FCM notification opened app:', remoteMessage)
         if (remoteMessage?.data) {
           NotificationService.handleIncomingNotification(remoteMessage.data)
         }
@@ -32,6 +34,7 @@ const App = (): React.JSX.Element => {
     messaging()
       .getInitialNotification()
       .then((remoteMessage) => {
+        console.log('📱 Initial FCM notification:', remoteMessage)
         if (remoteMessage?.data) {
           NotificationService.handleIncomingNotification(remoteMessage.data)
         }

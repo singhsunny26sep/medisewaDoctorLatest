@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, {useState, useRef, useEffect} from 'react';
 import {
   View,
   Text,
@@ -12,19 +12,17 @@ import {
   Dimensions,
   SafeAreaView,
 } from 'react-native';
-
 import LinearGradient from 'react-native-linear-gradient';
 import Feather from 'react-native-vector-icons/Feather';
-
 import OtpInput from '../components/otpInput/OtpInput';
-import { apiCall } from '../const/api';
+import {apiCall} from '../const/api';
 import showToast from '../utils/ShowToast';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useLogin } from '../context/LoginProvider';
-import { getFcmToken } from '../utils/FcmTokenUtils';
+import {useLogin} from '../context/LoginProvider';
+import {getFcmToken} from '../utils/FcmTokenUtils';
 
-const { width } = Dimensions.get('window');
+const {width} = Dimensions.get('window');
 
 const COLORS = {
   background: '#0F172A',
@@ -43,7 +41,7 @@ const COLORS = {
   border: 'rgba(255,255,255,0.08)',
 };
 
-export default function MobileVerify({ route, navigation }) {
+export default function MobileVerify({route, navigation}) {
   const mobile = route?.params?.mobile || '';
   const details = route?.params?.details || '';
 
@@ -53,7 +51,7 @@ export default function MobileVerify({ route, navigation }) {
   const [resendCountdown, setResendCountdown] = useState(30);
   const [canResend, setCanResend] = useState(false);
 
-  const { setIsLoggedIn } = useLogin();
+  const {setIsLoggedIn} = useLogin();
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const translateAnim = useRef(new Animated.Value(40)).current;
@@ -97,8 +95,6 @@ export default function MobileVerify({ route, navigation }) {
     return () => clearInterval(timer);
   }, []);
 
-  
-
   const handleResendOTP = async () => {
     if (!canResend) return;
 
@@ -122,9 +118,9 @@ export default function MobileVerify({ route, navigation }) {
       const requestBody = {
         mobile: mobile,
       };
-      
+
       console.log('Resend OTP Request Body:', requestBody);
-      
+
       const response = await axios.post(
         `${apiCall.mainUrl}/users/request/otp`,
         requestBody,
@@ -148,9 +144,9 @@ export default function MobileVerify({ route, navigation }) {
       setResendCountdown(0);
     }
   };
-const handleVerifyOTP = async () => {
+  const handleVerifyOTP = async () => {
     const otpString = otp.join('');
-    
+
     console.log('OTP String:', otpString);
     console.log('Mobile:', mobile);
     console.log('Session ID:', details);
@@ -165,15 +161,15 @@ const handleVerifyOTP = async () => {
 
     try {
       const fcmToken = await getFcmToken();
-      
+
       const requestBody = {
         sessionId: details,
         otp: otpString,
         mobile: mobile,
         fcmToken: fcmToken,
-        role:"doctor",
+        role: 'doctor',
       };
-      
+
       console.log('Request Body:', requestBody);
 
       const response = await axios.post(
@@ -204,83 +200,54 @@ const handleVerifyOTP = async () => {
   };
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar
-        backgroundColor={COLORS.background}
-        barStyle="light-content"
-      />
-
+      <StatusBar backgroundColor={COLORS.background} barStyle="light-content" />
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={{ flex: 1 }}>
-        
+        style={{flex: 1}}>
         {/* HEADER */}
         <LinearGradient
           colors={['#111827', '#0F172A', '#1E1B4B']}
           style={styles.header}>
-          
           <View style={styles.glow1} />
           <View style={styles.glow2} />
 
           <Animated.View
             style={{
               opacity: fadeAnim,
-              transform: [
-                { translateY: translateAnim },
-                { scale: scaleAnim },
-              ],
+              transform: [{translateY: translateAnim}, {scale: scaleAnim}],
             }}>
-            
             <View style={styles.logoWrapper}>
               <View style={styles.logoCircle}>
                 <Feather name="shield" size={42} color="#fff" />
               </View>
             </View>
-
             <Text style={styles.title}>OTP Verification</Text>
-
             <Text style={styles.subtitle}>
               Enter the 6-digit code sent to your mobile number
             </Text>
-
             <View style={styles.mobileBox}>
-              <Feather
-                name="smartphone"
-                size={16}
-                color={COLORS.cyan}
-              />
-
-              <Text style={styles.mobileText}>
-                +91 {mobile}
-              </Text>
+              <Feather name="smartphone" size={16} color={COLORS.cyan} />
+              <Text style={styles.mobileText}>+91 {mobile}</Text>
             </View>
           </Animated.View>
         </LinearGradient>
-
         {/* CONTENT */}
         <Animated.View
           style={[
             styles.content,
             {
               opacity: fadeAnim,
-              transform: [{ translateY: translateAnim }],
+              transform: [{translateY: translateAnim}],
             },
           ]}>
-          
           <View style={styles.card}>
-            
             {/* OTP Header */}
             <View style={styles.sectionHeader}>
               <View style={styles.iconBox}>
-                <Feather
-                  name="lock"
-                  size={20}
-                  color={COLORS.primary}
-                />
+                <Feather name="lock" size={20} color={COLORS.primary} />
               </View>
 
-              <Text style={styles.sectionTitle}>
-                Verification Code
-              </Text>
+              <Text style={styles.sectionTitle}>Verification Code</Text>
             </View>
 
             {/* OTP INPUT */}
@@ -291,11 +258,7 @@ const handleVerifyOTP = async () => {
             {/* ERROR */}
             {error ? (
               <View style={styles.errorContainer}>
-                <Feather
-                  name="alert-circle"
-                  size={15}
-                  color={COLORS.red}
-                />
+                <Feather name="alert-circle" size={15} color={COLORS.red} />
 
                 <Text style={styles.errorText}>{error}</Text>
               </View>
@@ -307,24 +270,16 @@ const handleVerifyOTP = async () => {
               style={styles.verifyBtn}
               onPress={handleVerifyOTP}
               disabled={loading}>
-              
               <LinearGradient
                 colors={['#7C3AED', '#A855F7']}
                 style={styles.verifyGradient}>
-                
                 {loading ? (
                   <ActivityIndicator color="#fff" />
                 ) : (
                   <>
-                    <Text style={styles.verifyText}>
-                      Verify OTP
-                    </Text>
+                    <Text style={styles.verifyText}>Verify OTP</Text>
 
-                    <Feather
-                      name="arrow-right"
-                      size={18}
-                      color="#fff"
-                    />
+                    <Feather name="arrow-right" size={18} color="#fff" />
                   </>
                 )}
               </LinearGradient>
@@ -332,14 +287,9 @@ const handleVerifyOTP = async () => {
 
             {/* RESEND */}
             <View style={styles.resendContainer}>
-              <Text style={styles.resendLabel}>
-                Didn’t receive the code?
-              </Text>
+              <Text style={styles.resendLabel}>Didn’t receive the code?</Text>
 
-              <TouchableOpacity
-                disabled={!canResend}
-                onPress={handleResendOTP}>
-                
+              <TouchableOpacity disabled={!canResend} onPress={handleResendOTP}>
                 <Text
                   style={[
                     styles.resendText,
@@ -347,9 +297,7 @@ const handleVerifyOTP = async () => {
                       opacity: canResend ? 1 : 0.5,
                     },
                   ]}>
-                  {canResend
-                    ? 'Resend OTP'
-                    : `Resend in ${resendCountdown}s`}
+                  {canResend ? 'Resend OTP' : `Resend in ${resendCountdown}s`}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -358,25 +306,14 @@ const handleVerifyOTP = async () => {
             <TouchableOpacity
               style={styles.backBtn}
               onPress={() => navigation.goBack()}>
-              
-              <Feather
-                name="chevron-left"
-                size={18}
-                color={COLORS.subText}
-              />
+              <Feather name="chevron-left" size={18} color={COLORS.subText} />
 
-              <Text style={styles.backText}>
-                Back to Login
-              </Text>
+              <Text style={styles.backText}>Back to Login</Text>
             </TouchableOpacity>
 
             {/* SECURITY */}
             <View style={styles.securityBox}>
-              <Feather
-                name="shield"
-                size={14}
-                color={COLORS.green}
-              />
+              <Feather name="shield" size={14} color={COLORS.green} />
 
               <Text style={styles.securityText}>
                 Secure & Encrypted Verification

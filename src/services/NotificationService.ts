@@ -66,6 +66,7 @@ class NotificationService {
     // Method to handle incoming notifications (called by the app when notification is received)
     handleIncomingNotification(notificationData: any) {
         try {
+            console.log('📥 Raw notification data received:', notificationData)
             const payload: CallNotificationPayload = {
                 callId: notificationData.callId,
                 callerName: notificationData.callerName,
