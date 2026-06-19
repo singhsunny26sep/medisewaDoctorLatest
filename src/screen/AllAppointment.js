@@ -8,16 +8,19 @@ import {
 import {colors} from '../const/Colors';
 import useBooking from '../hook/useBooking';
 import AppointmentView from '../components/AppointmentView';
+import { useLogin } from '../context/LoginProvider';
 
 export default function AllAppoinment() {
   const { getBookingByDoctorId } = useBooking();
+  const { user, userDetails } = useLogin();
+  const doctorId = userDetails?.doctorId?._id || user?._id;
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchAppointments = async () => {
       try {
-        const response = await getBookingByDoctorId();
+        const response = await getBookingByDoctorId(1, 10, doctorId);
         setAppointments(Array.isArray(response?.result) ? response.result : []);
       } catch (error) {
         console.error('Error fetching appointments: ', error);

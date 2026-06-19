@@ -21,8 +21,15 @@ import NotificationService from './src/services/NotificationService';
 
 messaging().setBackgroundMessageHandler(async (remoteMessage) => {
     try {
+        console.log('📱 Background FCM message received:', JSON.stringify(remoteMessage, null, 2))
         if (remoteMessage?.data) {
-            NotificationService.handleIncomingNotification(remoteMessage.data);
+            // Try to parse nested data if present
+            const data = remoteMessage.data?.data
+                ? (typeof remoteMessage.data.data === 'string' 
+                    ? JSON.parse(remoteMessage.data.data) 
+                    : remoteMessage.data.data)
+                : remoteMessage.data
+            NotificationService.handleIncomingNotification(data);
         }
     } catch (error) {
         console.log('❌ Error handling background FCM message:', error);

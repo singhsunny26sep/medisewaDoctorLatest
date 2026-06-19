@@ -18,6 +18,8 @@ import AppointmentView from '../components/AppointmentView'
 import useBooking from '../hook/useBooking'
 import AppointmentSkeletonLoader from '../common/AppointmentSkeletonLoader'
 import EmptyState from '../common/EmptyState'
+import { useLogin } from '../context/LoginProvider'
+import useUser from '../hook/useUser'
 
 import Feather from 'react-native-vector-icons/Feather'
 import LinearGradient from 'react-native-linear-gradient'
@@ -43,6 +45,8 @@ const COLORS = {
 
 const Appointments = () => {
   const { getBookingByDoctorId } = useBooking()
+  const { getUserProfile } = useUser()
+  const { user } = useLogin()
 
   const [appointments, setAppointments] = useState<any[]>([])
   const [loading, setLoading] = useState<boolean>(true)
@@ -51,11 +55,27 @@ const Appointments = () => {
   const [totalPages, setTotalPages] = useState<number>(1)
   const [loadingMore, setLoadingMore] = useState<boolean>(false)
   const [selectedFilter, setSelectedFilter] = useState<string>('all')
+  const [profile, setProfile] = useState<any>(null)
 
   const fadeAnim = useRef(new Animated.Value(0)).current
   const translateAnim = useRef(new Animated.Value(30)).current
 
   const skeletonArray = Array(4).fill(null)
+
+  const fetchProfile = async () => {
+    try {
+      const data = await getUserProfile()
+      setProfile(data)
+    } catch (e) {
+      console.log('Profile fetch error:', e)
+    }
+  }
+
+  useEffect(() => {
+    fetchProfile()
+  }, [])
+
+  const doctorId = profile?.doctorId?._id
 
   useEffect(() => {
     Animated.parallel([
@@ -64,7 +84,6 @@ const Appointments = () => {
         duration: 700,
         useNativeDriver: true,
       }),
-
       Animated.spring(translateAnim, {
         toValue: 0,
         friction: 7,
@@ -74,7 +93,13 @@ const Appointments = () => {
     ]).start()
   }, [])
 
-  const getAppointments = async (
+  useEffect(() => {
+    if (doctorId) {
+      getAppointments(1, false)
+    }
+  }, [doctorId])
+
+  const getAppointments = useCallback(async (
     newPage = 1,
     isRefreshing = false,
   ) => {
@@ -84,10 +109,10 @@ const Appointments = () => {
     else setLoadingMore(true)
 
     try {
-      const response = await getBookingByDoctorId(newPage, 10)
+      const response = await getBookingByDoctorId(newPage, 10, doctorId)
 
       if (response) {
-        const result = response?.result || response?.slots || response?.data || response
+        const result = response?.result || response?.data || response
 
         if (isRefreshing) {
           setAppointments(Array.isArray(result) ? result : [])
@@ -108,17 +133,14 @@ const Appointments = () => {
       setLoadingMore(false)
       setRefreshing(false)
     }
-  }
-
-  useEffect(() => {
-    getAppointments()
-  }, [])
+  }, [getBookingByDoctorId, doctorId, totalPages])
 
   const onRefresh = useCallback(() => {
     setRefreshing(true)
     setAppointments([])
+    setPage(1)
     getAppointments(1, true)
-  }, [])
+  }, [getAppointments])
 
   const loadMoreAppointments = () => {
     if (!loadingMore && page < totalPages) {
@@ -127,53 +149,27 @@ const Appointments = () => {
   }
 
   const filters = [
-    {
-      id: 'all',
-      label: 'All',
-      icon: 'calendar',
-    },
-    {
-      id: 'upcoming',
-      label: 'Upcoming',
-      icon: 'clock',
-    },
-    {
-      id: 'completed',
-      label: 'Completed',
-      icon: 'check-circle',
-    },
-    {
-      id: 'cancelled',
-      label: 'Cancelled',
-      icon: 'x-circle',
-    },
+    { id: 'all', label: 'All', icon: 'calendar' },
+    { id: 'upcoming', label: 'Upcoming', icon: 'clock' },
+    { id: 'completed', label: 'Completed', icon: 'check-circle' },
+    { id: 'cancelled', label: 'Cancelled', icon: 'x-circle' },
   ]
 
   const getFilteredAppointments = () => {
     if (selectedFilter === 'all') return appointments
-
     if (selectedFilter === 'upcoming') {
       return appointments.filter(
-        apt =>
-          apt.status === 'upcoming' ||
-          apt.status === 'confirmed',
+        apt => apt.status === 'upcoming' || apt.status === 'confirmed',
       )
     }
-
     if (selectedFilter === 'completed') {
       return appointments.filter(
-        apt =>
-          apt.status === 'completed' ||
-          apt.status === 'done',
+        apt => apt.status === 'completed' || apt.status === 'done',
       )
     }
-
     if (selectedFilter === 'cancelled') {
-      return appointments.filter(
-        apt => apt.status === 'cancelled',
-      )
+      return appointments.filter(apt => apt.status === 'cancelled')
     }
-
     return appointments
   }
 

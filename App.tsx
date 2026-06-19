@@ -9,12 +9,22 @@ import NotificationService from './src/services/NotificationService'
 
 const App = (): React.JSX.Element => {
   useEffect(() => {
+    const handleCallNotification = (remoteMessage: any) => {
+      console.log('📱 FCM message received:', JSON.stringify(remoteMessage, null, 2))
+      if (remoteMessage?.data) {
+        // Handle nested FCM data structure (backend may send data inside data.data)
+        const data = remoteMessage.data?.data
+          ? (typeof remoteMessage.data.data === 'string'
+              ? JSON.parse(remoteMessage.data.data)
+              : remoteMessage.data.data)
+          : remoteMessage.data
+        NotificationService.handleIncomingNotification(data)
+      }
+    }
+    
     const unsubscribeForeground = messaging().onMessage(async (remoteMessage) => {
       try {
-        console.log('📱 Foreground FCM message received:', remoteMessage)
-        if (remoteMessage?.data) {
-          NotificationService.handleIncomingNotification(remoteMessage.data)
-        }
+        handleCallNotification(remoteMessage)
       } catch (error) {
         console.log('❌ Error handling foreground FCM message:', error)
       }
@@ -22,10 +32,7 @@ const App = (): React.JSX.Element => {
 
     const unsubscribeOpenedApp = messaging().onNotificationOpenedApp((remoteMessage) => {
       try {
-        console.log('📱 FCM notification opened app:', remoteMessage)
-        if (remoteMessage?.data) {
-          NotificationService.handleIncomingNotification(remoteMessage.data)
-        }
+        handleCallNotification(remoteMessage)
       } catch (error) {
         console.log('❌ Error handling opened-app FCM message:', error)
       }
@@ -34,9 +41,9 @@ const App = (): React.JSX.Element => {
     messaging()
       .getInitialNotification()
       .then((remoteMessage) => {
-        console.log('📱 Initial FCM notification:', remoteMessage)
+        console.log('📱 Initial FCM notification:', JSON.stringify(remoteMessage, null, 2))
         if (remoteMessage?.data) {
-          NotificationService.handleIncomingNotification(remoteMessage.data)
+          handleCallNotification(remoteMessage)
         }
       })
       .catch((error) => {

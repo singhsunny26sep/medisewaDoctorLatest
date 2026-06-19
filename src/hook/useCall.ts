@@ -48,14 +48,13 @@ const useCall = () => {
                 } catch (rtmError) {
                     console.log('⚠️ RTM failed, falling back to notifications:', rtmError)
                     
-                    // Fallback to notification service
-                    await NotificationService.sendCallNotification(receiverId, {
-                        callId: callDataRaw.callId,
-                        // Use current user's name as caller for popup
-                        callerName: user?.name || 'Unknown',
-                        callType,
-                        callerId: receiverId
-                    })
+// Fallback to notification service
+                     await NotificationService.sendCallNotification(receiverId, {
+                         callId: callDataRaw.callId,
+                         callerName: user?.name || 'Unknown',
+                         callType,
+                         callerId: String(user?.id || user?._id || '')
+                     })
                     console.log('✅ Notification sent successfully')
                 }
 

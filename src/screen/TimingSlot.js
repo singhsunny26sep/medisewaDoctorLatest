@@ -29,7 +29,30 @@ const TimingSlot = ({doctorId}) => {
   const [leaveEndDate, setLeaveEndDate] = useState(new Date());
   const [leaveReason, setLeaveReason] = useState('');
   const [userProfile, setUserProfile] = useState(null);
-  
+
+  // Direct time slot selection states (matching API format)
+  const [morningSlots, setMorningSlots] = useState({
+    at9AM: false,
+    at9_30AM: false,
+    at10AM: false,
+    at10_30AM: false,
+    at11AM: false,
+  });
+  const [afternoonSlots, setAfternoonSlots] = useState({
+    at2PM: false,
+    at2_30PM: false,
+    at3PM: false,
+    at3_30PM: false,
+    at4PM: false,
+  });
+  const [eveningSlots, setEveningSlots] = useState({
+    at5PM: false,
+    at5_30PM: false,
+    at6PM: false,
+    at6_30PM: false,
+    at7PM: false,
+  });
+
   // Duration dropdown states
   const [durationOpen, setDurationOpen] = useState(false);
   const [selectedDuration, setSelectedDuration] = useState(null);
@@ -41,7 +64,7 @@ const TimingSlot = ({doctorId}) => {
   ]);
 
   const {createLeave, createTimeSlot} = useDoctor();
-  const {user} = useLogin(); 
+  const {user} = useLogin();
   const {getUserProfile} = useUser();
 
   useEffect(() => {
@@ -77,7 +100,7 @@ const TimingSlot = ({doctorId}) => {
     while (currentTime < end) {
       slots.push({
         time: currentTime.format('hh:mm A'),
-        period: getPeriodFromTime(currentTime.format('HH:mm'))
+        period: getPeriodFromTime(currentTime.format('HH:mm')),
       });
       currentTime.add(duration, 'minutes');
     }
@@ -86,7 +109,7 @@ const TimingSlot = ({doctorId}) => {
   };
 
   // Get period based on time
-  const getPeriodFromTime = (time) => {
+  const getPeriodFromTime = time => {
     const hour = parseInt(time.split(':')[0]);
     if (hour < 12) return 'Morning';
     if (hour < 17) return 'Afternoon';
@@ -113,18 +136,21 @@ const TimingSlot = ({doctorId}) => {
     const duration = selectedDuration;
 
     // Define time periods based on day of week
-    if (dayOfWeek === 0) { // Sunday
+    if (dayOfWeek === 0) {
+      // Sunday
       slots = [
         ...generateTimeSlots('09:00', '10:00', duration), // Morning
         ...generateTimeSlots('16:00', '17:00', duration), // Evening
       ];
-    } else if (dayOfWeek === 6) { // Saturday
+    } else if (dayOfWeek === 6) {
+      // Saturday
       slots = [
         ...generateTimeSlots('10:00', '12:00', duration), // Morning
         ...generateTimeSlots('14:00', '15:00', duration), // Afternoon
         ...generateTimeSlots('17:00', '18:00', duration), // Evening
       ];
-    } else { // Weekdays
+    } else {
+      // Weekdays
       slots = [
         ...generateTimeSlots('09:00', '12:00', duration), // Morning
         ...generateTimeSlots('14:00', '17:00', duration), // Afternoon
@@ -188,94 +214,166 @@ const TimingSlot = ({doctorId}) => {
     return slots.filter(slot => slot.period === period);
   };
 
+  // Handle checkbox toggle for direct time slot format
+  const handleSlotToggle = (period, slotKey) => {
+    if (period === 'morning') {
+      setMorningSlots(prev => ({
+        ...prev,
+        [slotKey]: !prev[slotKey],
+      }));
+    } else if (period === 'afternoon') {
+      setAfternoonSlots(prev => ({
+        ...prev,
+        [slotKey]: !prev[slotKey],
+      }));
+    } else if (period === 'evening') {
+      setEveningSlots(prev => ({
+        ...prev,
+        [slotKey]: !prev[slotKey],
+      }));
+    }
+  };
+
+  // Direct time slot submission matching API format
+  const handleDirectTimeSlotSubmit = async () => {
+    const timeSlotData = {
+      date: moment(selectedDate).format('YYYY-MM-DD'),
+      morning: morningSlots,
+      afternoon: afternoonSlots,
+      evening: eveningSlots,
+    };
+
+    if (
+      !Object.values(morningSlots).some(v => v) &&
+      !Object.values(afternoonSlots).some(v => v) &&
+      !Object.values(eveningSlots).some(v => v)
+    ) {
+      Alert.alert('No Slots Selected', 'Please select at least one time slot.');
+      return;
+    }
+
+    try {
+      const result = await createTimeSlot(effectiveDoctorId, timeSlotData);
+
+      if (result) {
+        Alert.alert('Success', 'Time slots have been saved successfully!');
+        // Reset selection
+        setMorningSlots({
+          at9AM: false,
+          at9_30AM: false,
+          at10AM: false,
+          at10_30AM: false,
+          at11AM: false,
+        });
+        setAfternoonSlots({
+          at2PM: false,
+          at2_30PM: false,
+          at3PM: false,
+          at3_30PM: false,
+          at4PM: false,
+        });
+        setEveningSlots({
+          at5PM: false,
+          at5_30PM: false,
+          at6PM: false,
+          at6_30PM: false,
+          at7PM: false,
+        });
+      }
+    } catch (error) {
+      console.error('Failed to save time slots:', error);
+      Alert.alert('Error', 'Failed to save time slots. Please try again.');
+    }
+  };
+
   const handleSaveSlots = async () => {
     console.log('Saving slots for doctor ID:', effectiveDoctorId);
     console.log('Selected slots:', selectedSlots);
 
     if (selectedSlots.length === 0) {
-        Alert.alert('No Slots Selected', 'Please select at least one time slot.');
-        return;
+      Alert.alert('No Slots Selected', 'Please select at least one time slot.');
+      return;
     }
 
     try {
-        const timeSlotData = prepareTimeSlotData(selectedSlots);
-        console.log('Time slot data for API:', timeSlotData);
+      const timeSlotData = prepareTimeSlotData(selectedSlots);
+      console.log('Time slot data for API:', timeSlotData);
 
-        const result = await createTimeSlot(effectiveDoctorId, timeSlotData);
+      const result = await createTimeSlot(effectiveDoctorId, timeSlotData);
 
-        if (result) {
-            setSavedSlots(prev => {
-                const newSlots = selectedSlots.filter(newSlot =>
-                    !prev.some(savedSlot => savedSlot.key === newSlot.key)
-                );
-                return [...prev, ...newSlots];
-            });
+      if (result) {
+        setSavedSlots(prev => {
+          const newSlots = selectedSlots.filter(
+            newSlot => !prev.some(savedSlot => savedSlot.key === newSlot.key),
+          );
+          return [...prev, ...newSlots];
+        });
 
-            console.log('All Saved Slots:', savedSlots);
-            Alert.alert(
-                'Success',
-                `${selectedSlots.length} slot(s) have been saved successfully!`
-            );
-            
-            setSelectedSlots([]);
-        }
+        console.log('All Saved Slots:', savedSlots);
+        Alert.alert(
+          'Success',
+          `${selectedSlots.length} slot(s) have been saved successfully!`,
+        );
+
+        setSelectedSlots([]);
+      }
     } catch (error) {
-        console.error('Failed to save time slots:', error);
-        Alert.alert('Error', 'Failed to save time slots. Please try again.');
+      console.error('Failed to save time slots:', error);
+      Alert.alert('Error', 'Failed to save time slots. Please try again.');
     }
   };
 
-  const prepareTimeSlotData = (slots) => {
+  const prepareTimeSlotData = slots => {
     const groupedByDate = slots.reduce((acc, slot) => {
-        if (!acc[slot.fullDate]) {
-            acc[slot.fullDate] = [];
-        }
-        acc[slot.fullDate].push(slot);
-        return acc;
+      if (!acc[slot.fullDate]) {
+        acc[slot.fullDate] = [];
+      }
+      acc[slot.fullDate].push(slot);
+      return acc;
     }, {});
 
     const date = Object.keys(groupedByDate)[0];
     const dateSlots = groupedByDate[date];
 
     const timeSlotData = {
-        date: date,
-        morning: {
-            at9AM: false,
-            at9_30AM: false,
-            at10AM: false,
-            at10_30AM: false,
-            at11AM: false
-        },
-        afternoon: {
-            at2PM: false,
-            at2_30PM: false,
-            at3PM: false
-        },
-        evening: {
-            at4PM: false,
-            at4_30PM: false,
-            at5PM: false,
-            at5_30PM: false
-        }
+      date: date,
+      morning: {
+        at9AM: false,
+        at9_30AM: false,
+        at10AM: false,
+        at10_30AM: false,
+        at11AM: false,
+      },
+      afternoon: {
+        at2PM: false,
+        at2_30PM: false,
+        at3PM: false,
+      },
+      evening: {
+        at4PM: false,
+        at4_30PM: false,
+        at5PM: false,
+        at5_30PM: false,
+      },
     };
 
     dateSlots.forEach(slot => {
-        const time = slot.time;
-        
-        if (time === '09:00 AM') timeSlotData.morning.at9AM = true;
-        if (time === '09:30 AM') timeSlotData.morning.at9_30AM = true;
-        if (time === '10:00 AM') timeSlotData.morning.at10AM = true;
-        if (time === '10:30 AM') timeSlotData.morning.at10_30AM = true;
-        if (time === '11:00 AM') timeSlotData.morning.at11AM = true;
-        
-        if (time === '02:00 PM') timeSlotData.afternoon.at2PM = true;
-        if (time === '02:30 PM') timeSlotData.afternoon.at2_30PM = true;
-        if (time === '03:00 PM') timeSlotData.afternoon.at3PM = true;
-        
-        if (time === '04:00 PM') timeSlotData.evening.at4PM = true;
-        if (time === '04:30 PM') timeSlotData.evening.at4_30PM = true;
-        if (time === '05:00 PM') timeSlotData.evening.at5PM = true;
-        if (time === '05:30 PM') timeSlotData.evening.at5_30PM = true;
+      const time = slot.time;
+
+      if (time === '09:00 AM') timeSlotData.morning.at9AM = true;
+      if (time === '09:30 AM') timeSlotData.morning.at9_30AM = true;
+      if (time === '10:00 AM') timeSlotData.morning.at10AM = true;
+      if (time === '10:30 AM') timeSlotData.morning.at10_30AM = true;
+      if (time === '11:00 AM') timeSlotData.morning.at11AM = true;
+
+      if (time === '02:00 PM') timeSlotData.afternoon.at2PM = true;
+      if (time === '02:30 PM') timeSlotData.afternoon.at2_30PM = true;
+      if (time === '03:00 PM') timeSlotData.afternoon.at3PM = true;
+
+      if (time === '04:00 PM') timeSlotData.evening.at4PM = true;
+      if (time === '04:30 PM') timeSlotData.evening.at4_30PM = true;
+      if (time === '05:00 PM') timeSlotData.evening.at5PM = true;
+      if (time === '05:30 PM') timeSlotData.evening.at5_30PM = true;
     });
 
     return timeSlotData;
@@ -378,12 +476,11 @@ const TimingSlot = ({doctorId}) => {
           {date}
         </Text>
         <Text style={styles.slotCount}>
-          {!selectedDuration 
+          {!selectedDuration
             ? 'Select duration to view slots'
             : data.available
             ? `${data.slots.length} slots available`
-            : 'Doctor on Leave'
-          }
+            : 'Doctor on Leave'}
         </Text>
       </View>
       {data.available && data.slots.length > 0 && selectedDuration && (
@@ -458,6 +555,112 @@ const TimingSlot = ({doctorId}) => {
       </View>
     );
   };
+
+  // Direct time slot selection component matching API format
+  const DirectTimeSlotSelector = () => (
+    <View style={styles.directSlotContainer}>
+      <Text style={styles.directSlotTitle}>Quick Time Slot Selection</Text>
+
+      <View style={styles.periodSlotGroup}>
+        <Text style={styles.periodSlotLabel}>Morning</Text>
+        <View style={styles.checkboxRow}>
+          {[
+            {key: 'at9AM', label: '9:00 AM'},
+            {key: 'at9_30AM', label: '9:30 AM'},
+            {key: 'at10AM', label: '10:00 AM'},
+            {key: 'at10_30AM', label: '10:30 AM'},
+            {key: 'at11AM', label: '11:00 AM'},
+          ].map(item => (
+            <TouchableOpacity
+              key={item.key}
+              style={[
+                styles.checkbox,
+                morningSlots[item.key] && styles.checkboxSelected,
+              ]}
+              onPress={() => handleSlotToggle('morning', item.key)}>
+              <Text
+                style={[
+                  styles.checkboxText,
+                  morningSlots[item.key] && styles.checkboxTextSelected,
+                ]}>
+                {item.label}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </View>
+
+      <View style={styles.periodSlotGroup}>
+        <Text style={styles.periodSlotLabel}>Afternoon</Text>
+        <View style={styles.checkboxRow}>
+          {[
+            {key: 'at2PM', label: '2:00 PM'},
+            {key: 'at2_30PM', label: '2:30 PM'},
+            {key: 'at3PM', label: '3:00 PM'},
+            {key: 'at3_30PM', label: '3:30 PM'},
+            {key: 'at4PM', label: '4:00 PM'},
+          ].map(item => (
+            <TouchableOpacity
+              key={item.key}
+              style={[
+                styles.checkbox,
+                afternoonSlots[item.key] && styles.checkboxSelected,
+              ]}
+              onPress={() => handleSlotToggle('afternoon', item.key)}>
+              <Text
+                style={[
+                  styles.checkboxText,
+                  afternoonSlots[item.key] && styles.checkboxTextSelected,
+                ]}>
+                {item.label}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </View>
+
+      <View style={styles.periodSlotGroup}>
+        <Text style={styles.periodSlotLabel}>Evening</Text>
+        <View style={styles.checkboxRow}>
+          {[
+            {key: 'at5PM', label: '5:00 PM'},
+            {key: 'at5_30PM', label: '5:30 PM'},
+            {key: 'at6PM', label: '6:00 PM'},
+            {key: 'at6_30PM', label: '6:30 PM'},
+            {key: 'at7PM', label: '7:00 PM'},
+          ].map(item => (
+            <TouchableOpacity
+              key={item.key}
+              style={[
+                styles.checkbox,
+                eveningSlots[item.key] && styles.checkboxSelected,
+              ]}
+              onPress={() => handleSlotToggle('evening', item.key)}>
+              <Text
+                style={[
+                  styles.checkboxText,
+                  eveningSlots[item.key] && styles.checkboxTextSelected,
+                ]}>
+                {item.label}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </View>
+
+      <TouchableOpacity
+        style={[
+          styles.directSaveButton,
+          !effectiveDoctorId && styles.saveButtonDisabled,
+        ]}
+        onPress={handleDirectTimeSlotSubmit}
+        disabled={!effectiveDoctorId}>
+        <Text style={styles.saveButtonText}>
+          {!effectiveDoctorId ? 'Loading...' : 'Save Time Slots (API Format)'}
+        </Text>
+      </TouchableOpacity>
+    </View>
+  );
 
   const DurationSelector = () => (
     <View style={styles.durationContainer}>
@@ -573,44 +776,47 @@ const TimingSlot = ({doctorId}) => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Clinic Visit Slots</Text>
-        <Text style={styles.subtitle}>Purpose of visit: Consultation</Text>
+      <ScrollView>
+        <View style={styles.header}>
+          <Text style={styles.title}>Clinic Visit Slots</Text>
+          <Text style={styles.subtitle}>Purpose of visit: Consultation</Text>
 
-        <View style={styles.dateContainer}>
-          <CustomDateTimeInput
-            label="Select Date"
-            mode="date"
-            value={selectedDate}
-            onChange={handleDateChange}
-          />
+          <View style={styles.dateContainer}>
+            <CustomDateTimeInput
+              label="Select Date"
+              mode="date"
+              value={selectedDate}
+              onChange={handleDateChange}
+            />
+          </View>
+
+          {/* Duration Selector - Only show when date is selected */}
+          {selectedDate && <DurationSelector />}
+
+          <LeaveManagement />
+
+          {/* Direct Time Slot Selector for API format */}
+          {selectedDate && <DirectTimeSlotSelector />}
+
+          <View style={styles.legendContainer}>
+            <View style={styles.legendItem}>
+              <View style={[styles.legendDot, {backgroundColor: '#4CAF50'}]} />
+              <Text style={styles.legendText}>Morning</Text>
+            </View>
+            <View style={styles.legendItem}>
+              <View style={[styles.legendDot, {backgroundColor: '#FF9800'}]} />
+              <Text style={styles.legendText}>Afternoon</Text>
+            </View>
+            <View style={styles.legendItem}>
+              <View style={[styles.legendDot, {backgroundColor: '#2196F3'}]} />
+              <Text style={styles.legendText}>Evening</Text>
+            </View>
+          </View>
         </View>
-
-        {/* Duration Selector - Only show when date is selected */}
-        {selectedDate && <DurationSelector />}
-
-        <LeaveManagement />
-
-        <View style={styles.legendContainer}>
-          <View style={styles.legendItem}>
-            <View style={[styles.legendDot, {backgroundColor: '#4CAF50'}]} />
-            <Text style={styles.legendText}>Morning</Text>
-          </View>
-          <View style={styles.legendItem}>
-            <View style={[styles.legendDot, {backgroundColor: '#FF9800'}]} />
-            <Text style={styles.legendText}>Afternoon</Text>
-          </View>
-          <View style={styles.legendItem}>
-            <View style={[styles.legendDot, {backgroundColor: '#2196F3'}]} />
-            <Text style={styles.legendText}>Evening</Text>
-          </View>
-        </View>
-      </View>
-
+      </ScrollView>
       <ScrollView style={styles.scrollView}>
         <View style={styles.dateSection}>
           <DateHeader date={currentDateKey} data={currentSlotData} />
-
           {expandedDate === currentDateKey &&
             currentSlotData.available &&
             currentSlotData.slots.length > 0 &&
@@ -625,13 +831,16 @@ const TimingSlot = ({doctorId}) => {
               </View>
             )}
 
-          {currentSlotData.available && currentSlotData.slots.length === 0 && selectedDuration && (
-            <View style={styles.noSlotsContainer}>
-              <Text style={styles.noSlotsText}>
-                No slots available for {currentDateKey} with {selectedDuration} minute duration
-              </Text>
-            </View>
-          )}
+          {currentSlotData.available &&
+            currentSlotData.slots.length === 0 &&
+            selectedDuration && (
+              <View style={styles.noSlotsContainer}>
+                <Text style={styles.noSlotsText}>
+                  No slots available for {currentDateKey} with{' '}
+                  {selectedDuration} minute duration
+                </Text>
+              </View>
+            )}
 
           {!selectedDuration && expandedDate === currentDateKey && (
             <View style={styles.noSlotsContainer}>
@@ -1140,6 +1349,60 @@ const styles = StyleSheet.create({
   addButtonText: {
     color: '#fff',
     fontWeight: '600',
+  },
+  // Direct time slot selector styles
+  directSlotContainer: {
+    padding: 15,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    borderRadius: 8,
+    marginHorizontal: 20,
+    marginTop: 15,
+  },
+  directSlotTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#fff',
+    marginBottom: 10,
+  },
+  periodSlotGroup: {
+    marginBottom: 12,
+  },
+  periodSlotLabel: {
+    fontSize: 14,
+    color: '#fff',
+    fontWeight: '600',
+    marginBottom: 8,
+  },
+  checkboxRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  checkbox: {
+    backgroundColor: '#fff',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 15,
+    borderWidth: 1,
+    borderColor: '#ddd',
+  },
+  checkboxSelected: {
+    backgroundColor: colors.greenCustom,
+    borderColor: colors.greenCustom,
+  },
+  checkboxText: {
+    fontSize: 12,
+    color: '#333',
+  },
+  checkboxTextSelected: {
+    color: '#fff',
+  },
+  directSaveButton: {
+    backgroundColor: colors.greenCustom,
+    padding: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginTop: 10,
   },
 });
 

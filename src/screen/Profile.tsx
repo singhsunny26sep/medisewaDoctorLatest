@@ -57,7 +57,7 @@ const Profile = () => {
   const [imgLoading, setImgLoading] = useState(false);
   const [userDetails, setUserDetails] = useState<any>();
   const [visible, setVisible] = useState(false);
-
+console.log(userDetails,"**************")
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(40)).current;
 
@@ -81,6 +81,7 @@ const Profile = () => {
     try {
       const user = await getUserProfile();
       setUserDetails(user);
+      console.log(userDetails,"this sadfjkshfdkjshfdjksfhdjsk")
     } catch (error) {
       console.log(error);
     } finally {

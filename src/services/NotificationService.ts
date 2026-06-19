@@ -67,11 +67,38 @@ class NotificationService {
     handleIncomingNotification(notificationData: any) {
         try {
             console.log('📥 Raw notification data received:', notificationData)
+            
+            // Handle nested FCM data structure (backend may send data inside data.data)
+            let raw = notificationData
+            if (notificationData?.data?.data) {
+                try {
+                    raw = typeof notificationData.data.data === 'string' 
+                        ? JSON.parse(notificationData.data.data)
+                        : notificationData.data.data
+                } catch (parseError) {
+                    console.log('❌ Failed to parse nested data, using raw notificationData:', parseError)
+                }
+            }
+            
+            // FCM sends all data as strings, validate and parse them
+            const callId = String(raw.callId || raw?.data?.callId || '');
+            const callerId = String(raw.callerId || raw?.data?.callerId || '');
+            const callType = (raw.callType === 'audio' || raw.callType === 'video') 
+                ? raw.callType 
+                : 'video';
+            const callerName = String(raw.callerName || raw?.data?.callerName || 'Unknown');
+            
+            // Validate required fields
+            if (!callId) {
+                console.log('❌ Missing callId in notification data')
+                return null
+            }
+            
             const payload: CallNotificationPayload = {
-                callId: notificationData.callId,
-                callerName: notificationData.callerName,
-                callType: notificationData.callType,
-                callerId: notificationData.callerId
+                callId,
+                callerName,
+                callType,
+                callerId
             }
             
             console.log('📨 Processing incoming notification:', payload)

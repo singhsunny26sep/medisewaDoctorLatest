@@ -107,7 +107,9 @@ const CallProvider = ({children}: {children: React.ReactNode}) => {
       console.log('📞 Caller ID:', payload?.callerId);
 
       const callerId = String(payload?.callerId || '');
-      if (currentUserId && callerId && callerId === currentUserId) {
+      // Only ignore if callerId is explicitly set and matches current user (prevent self-calls)
+      // If callerId is empty, still show the modal
+      if (callerId && callerId === currentUserId) {
         console.log(
           'ℹ️ Ignoring self-initiated call invite for user:',
           currentUserId,

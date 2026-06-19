@@ -55,7 +55,7 @@ const DrawerNavigator = (): React.JSX.Element => {
       />
       <Drawer.Screen
         name={NavigationString.Appointments}
-        component={AppointmentView}
+        component={Appointments}
         options={{
           title: 'Appointment',
           drawerIcon: ({color}) => (

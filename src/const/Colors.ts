@@ -18,6 +18,7 @@ export const colors = {
     // Accent Colors
     yellow: "#FFC107",
     red: "#EF4444",            // Changed from #FF5733 to modern red
+    cyan: "#06B6D4",
     
     // Neutral Colors
     black: "#000000",
